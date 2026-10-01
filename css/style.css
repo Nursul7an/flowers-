@@ -75,7 +75,7 @@ body {
 #bouquet-wrap {
   position: absolute;
   left: 50%;
-  bottom: calc(84px + var(--safe-b));
+  bottom: calc(56px + var(--safe-b));
   transform: translateX(-50%);
   z-index: 2;
   pointer-events: none;
@@ -188,14 +188,6 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   opacity: 0;
 }
 
-.love {
-  font-family: var(--script);
-  font-size: clamp(1.7rem, 7vw, 2.3rem);
-  line-height: 1.1;
-  color: var(--ink);
-  text-shadow: 0 0 20px rgba(247, 140, 175, 0.7);
-}
-
 .ghost {
   margin-top: 4px;
   padding: 6px 16px;
@@ -253,7 +245,6 @@ html:not(.js) .name { font-size: clamp(2.6rem, 12vw, 4.5rem); }
   height: 52vh;
   margin: 2vh auto 0;
 }
-.static-love { font-family: var(--script); font-size: 1.8rem; text-align: center; }
 
 /* Runtime fallback (GSAP failed / JS error) */
 .fallback #stage { flex-direction: column; justify-content: flex-start; padding-top: 6vh; }

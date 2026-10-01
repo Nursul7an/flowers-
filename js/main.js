@@ -7,7 +7,6 @@
     dedication: 'Эти цветы — для самой доброй и самой красивой девушки —',
     name: 'Дарии',
     button: 'Для тебя 🌸',
-    finale: 'С любовью 💗',
     replay: '↻ ещё раз',
 
     timing: {
@@ -68,7 +67,7 @@
   var opened = false, introDone = false, tapEnabled = false, replaying = false, wantSkip = false;
   var renderOnce = false;
   var bouquetH = 0, wide = false;
-  var FINALE_H = 84;
+  var FINALE_H = 56;
 
   /* ── Fallback: static text + static bouquet ─────── */
   function fallback(err) {
@@ -297,7 +296,6 @@
 
     openBtn.textContent = CONFIG.button;
     replayBtn.textContent = CONFIG.replay;
-    $('.love').textContent = CONFIG.finale;
     nameGlowEl.textContent = CONFIG.name;
 
     var chars = splitChars(dedicationEl, CONFIG.dedication);

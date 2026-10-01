@@ -29,7 +29,7 @@ npx http-server -p 8080 .
 
 ## Как поменять текст / цвета
 
-Всё в объекте `CONFIG` в начале `js/main.js`: `dedication`, `name`, `button`, `finale`, палитры пионов, позиции цветов, тайминги. Свой трек: положите `assets/music.mp3` (royalty-free) и укажите `music.src: 'assets/music.mp3'`. Чтобы музыка включалась вместе с букетом — `music.startWithBouquet: true`.
+Всё в объекте `CONFIG` в начале `js/main.js`: `dedication`, `name`, `button`, `replay`, палитры пионов, позиции цветов, тайминги. Свой трек: положите `assets/music.mp3` (royalty-free) и укажите `music.src: 'assets/music.mp3'`. Чтобы музыка включалась вместе с букетом — `music.startWithBouquet: true`.
 
 После изменения цветов перегенерируйте превью и fallback:
 
@@ -53,4 +53,4 @@ node tools/render-assets.mjs
 
 ## Открытые вопросы из ТЗ
 
-Формулировки посвящения/финала, цвет пионов, трек и домен — сейчас стоят значения по умолчанию из ТЗ, меняются в `CONFIG`.
+Формулировка посвящения, цвет пионов, трек и домен — сейчас стоят значения по умолчанию из ТЗ, меняются в `CONFIG`.
