@@ -139,6 +139,68 @@ body {
   pointer-events: none;
 }
 
+/* story lines that appear and dissolve before the dedication */
+.story {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.story-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--script);
+  font-size: clamp(1.9rem, 7.6vw, 2.9rem);
+  line-height: 1.35;
+  color: #FFF4E6;
+  text-shadow: 0 0 22px rgba(255, 217, 160, 0.55), 0 0 2px rgba(255, 255, 255, 0.5);
+  visibility: hidden;
+}
+
+.story-line .sw { display: inline-block; }
+
+.intro-text { position: relative; }
+
+.name-shine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  color: transparent;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 228, 180, 0.9) 47%, #FFFFFF 50%, rgba(255, 228, 180, 0.9) 53%, transparent 62%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.name-shine.on {
+  opacity: 1;
+  animation: shine 5s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0% { background-position: 100% 0; }
+  45%, 100% { background-position: 0% 0; }
+}
+
+.hint {
+  margin-top: 0.8rem;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+
 .word { display: inline-block; white-space: nowrap; }
 .char { display: inline-block; }
 
@@ -226,11 +288,14 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .js .dedication,
 .js .name { visibility: hidden; }
 .js .cta { visibility: hidden; opacity: 0; pointer-events: none; }
+.js .hint { visibility: hidden; opacity: 0; }
 .js .name-glow { opacity: 0; }
 
 /* No JS: static dedication + static bouquet */
 html:not(.js) #stage { flex-direction: column; justify-content: flex-start; padding-top: 6vh; }
 html:not(.js) .cta,
+html:not(.js) .hint,
+html:not(.js) .name-shine,
 html:not(.js) .sound,
 html:not(.js) .veil,
 html:not(.js) #finale,
@@ -252,6 +317,9 @@ html:not(.js) .name { font-size: clamp(2.6rem, 12vw, 4.5rem); }
 .fallback .name { visibility: visible !important; }
 .fallback .char { opacity: 1 !important; transform: none !important; }
 .fallback .cta,
+.fallback .hint,
+.fallback .story,
+.fallback .name-shine,
 .fallback .veil,
 .fallback .sound,
 .fallback #finale .ghost,
@@ -263,6 +331,7 @@ html:not(.js) .name { font-size: clamp(2.6rem, 12vw, 4.5rem); }
 .fallback .name { font-size: clamp(2.6rem, 12vw, 4.5rem); }
 
 @media (prefers-reduced-motion: reduce) {
+  .name-shine.on,
   .cta.breathing,
   #bouquet-wrap.swaying svg { animation: none; }
 }

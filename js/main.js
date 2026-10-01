@@ -4,14 +4,22 @@
   'use strict';
 
   var CONFIG = {
-    dedication: 'Эти цветы — для самой доброй и самой красивой девушки —',
+    // lines that appear one by one and dissolve before the dedication
+    story: [
+      'Говорят, пионы цветут всего пару недель в году…',
+      '…и всегда — для кого-то особенного.'
+    ],
+    dedication: 'Эти — для самой доброй и самой красивой девушки на свете —',
     name: 'Дарии',
     button: 'Для тебя 🌸',
+    hint: 'нажми — и они распустятся',
     replay: '↻ ещё раз',
 
     timing: {
       silence: 1.4,      // scene 1: dusk + fireflies before the text starts
-      charStep: 0.045,   // scene 2: delay between letters
+      wordStep: 0.16,    // scene 2: story lines, delay between words
+      storyHold: 1.7,    // how long a story line stays fully visible
+      charStep: 0.04,    // dedication: delay between letters
       nameStep: 0.12,    // the name is written slower
       fontTimeout: 2000  // never wait longer than this for web fonts
     },
@@ -67,6 +75,7 @@
 
   var stage = $('#stage'), intro = $('#intro'), introText = $('.intro-text');
   var dedicationEl = $('.dedication'), nameEl = $('.name'), nameTextEl = $('.name-text'), nameGlowEl = $('.name-glow');
+  var nameShineEl = $('.name-shine'), storyEl = $('.story'), hintEl = $('.hint');
   var openBtn = $('#open'), finale = $('#finale'), replayBtn = $('#replay'), soundBtn = $('#sound');
   var wrap = $('#bouquet-wrap'), light = $('.bouquet-light'), veil = $('.veil');
 
@@ -114,6 +123,30 @@
     el.appendChild(sr);
     el.appendChild(vis);
     return chars;
+  }
+
+  // story lines: one <p> per line, words wrapped for a word-by-word reveal
+  function buildStory(lines) {
+    storyEl.textContent = '';
+    var sr = document.createElement('p');
+    sr.className = 'sr-only';
+    sr.textContent = lines.join(' ');
+    storyEl.appendChild(sr);
+    return lines.map(function (text) {
+      var p = document.createElement('p');
+      p.className = 'story-line';
+      p.setAttribute('aria-hidden', 'true');
+      var words = text.split(' ').map(function (w, i, arr) {
+        var s = document.createElement('span');
+        s.className = 'sw';
+        s.textContent = w;
+        p.appendChild(s);
+        if (i < arr.length - 1) p.appendChild(document.createTextNode(' '));
+        return s;
+      });
+      storyEl.appendChild(p);
+      return { el: p, words: words };
+    });
   }
 
   function centerOf(node) {
@@ -175,10 +208,33 @@
   }
 
   /* ── Scene 2–3: dedication ─────────────────────── */
-  function buildIntro(chars, nameChars) {
+  function buildIntro(story, chars, nameChars) {
     var T = CONFIG.timing;
     var tl = gsap.timeline({ paused: true });
-    tl.set([dedicationEl, nameEl], { visibility: 'visible' });
+
+    // story lines: word by word, hold, then dissolve upwards
+    story.forEach(function (line) {
+      tl.set(line.el, { visibility: 'visible' });
+      if (reduced) {
+        tl.fromTo(line.words, { opacity: 0 }, { opacity: 1, duration: 0.9 })
+          .to(line.words, { opacity: 0, duration: 0.7 }, '+=' + (T.storyHold + 0.6));
+      } else {
+        var start = tl.duration();
+        tl.fromTo(line.words,
+          { opacity: 0, y: '0.6em', scale: 0.85 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power2.out', stagger: T.wordStep }, start);
+        line.words.forEach(function (w, i) {
+          tl.call(function () { var p = centerOf(w); particles.spark(p.right, p.y); }, null, start + i * T.wordStep + 0.2);
+        });
+        tl.to(line.words, {
+          opacity: 0, y: '-0.5em', scale: 1.04, duration: 0.7, ease: 'power1.in', stagger: 0.05
+        }, start + 0.8 + line.words.length * T.wordStep + T.storyHold);
+      }
+      tl.set(line.el, { visibility: 'hidden' }, '+=0.15');
+    });
+
+    var t0 = tl.duration();
+    tl.set([dedicationEl, nameEl], { visibility: 'visible' }, t0);
 
     if (reduced) {
       tl.fromTo(chars.concat(nameChars), { opacity: 0 }, { opacity: 1, duration: 1.4, ease: 'power1.inOut' })
@@ -186,13 +242,13 @@
     } else {
       tl.fromTo(chars,
         { opacity: 0, y: '0.35em', scale: 0.6, rotation: -6 },
-        { opacity: 1, y: 0, scale: 1, rotation: 0, duration: 0.55, ease: 'back.out(2)', stagger: T.charStep });
+        { opacity: 1, y: 0, scale: 1, rotation: 0, duration: 0.55, ease: 'back.out(2)', stagger: T.charStep }, t0);
       chars.forEach(function (c, i) {
         if (i % 3 === 0 && c.textContent.trim()) tl.call(function () {
           var p = centerOf(c); particles.spark(p.right, p.y);
-        }, null, i * T.charStep + 0.1);
+        }, null, t0 + i * T.charStep + 0.1);
       });
-      var nameAt = chars.length * T.charStep + 0.35;
+      var nameAt = t0 + chars.length * T.charStep + 0.35;
       tl.fromTo(nameChars,
         { opacity: 0, y: '0.3em', scale: 0.5 },
         { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'back.out(1.8)', stagger: T.nameStep }, nameAt);
@@ -206,6 +262,7 @@
         var r = nameTextEl.getBoundingClientRect();
         particles.single(r.left + r.width * 0.62, r.top + r.height * 0.15);
       }, null, glowAt + 0.3);
+      tl.call(function () { nameShineEl.classList.add('on'); }, null, glowAt + 0.9);
     }
 
     // FR-3: the button exists only after the text is complete
@@ -217,6 +274,7 @@
         if (!reduced) openBtn.classList.add('breathing');
       }
     }, '+=0.5');
+    tl.fromTo(hintEl, { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power2.out' }, '-=0.2');
     return tl;
   }
 
@@ -234,6 +292,7 @@
     openBtn.style.pointerEvents = 'none';
     openBtn.classList.remove('breathing');
     gsap.to(openBtn, { autoAlpha: 0, scale: 0.92, duration: 0.35, ease: 'power1.in' });
+    gsap.to(hintEl, { autoAlpha: 0, duration: 0.3 });
 
     gsap.delayedCall(0.06, playBouquet); // FR-4: stems start well under 200 ms
     placeIntro(true);
@@ -287,6 +346,9 @@
     if (introTl) introTl.progress(1);
     gsap.set([dedicationEl, nameEl], { visibility: 'visible' });
     gsap.set(nameGlowEl, { opacity: 1 });
+    gsap.set(storyEl, { autoAlpha: 0 });
+    gsap.set(hintEl, { autoAlpha: 0 });
+    nameShineEl.classList.add('on');
     introDone = true;
     opened = true;
     gsap.set(openBtn, { autoAlpha: 0 });
@@ -304,6 +366,9 @@
     openBtn.textContent = CONFIG.button;
     replayBtn.textContent = CONFIG.replay;
     nameGlowEl.textContent = CONFIG.name;
+    nameShineEl.textContent = CONFIG.name;
+    hintEl.textContent = CONFIG.hint;
+    var story = buildStory(CONFIG.story || []);
 
     var chars = splitChars(dedicationEl, CONFIG.dedication);
     var nameChars = splitChars(nameTextEl, CONFIG.name);
@@ -346,7 +411,7 @@
 
     var minDelay = new Promise(function (res) { setTimeout(res, CONFIG.timing.silence * 1000); });
     Promise.all([minDelay, fontsReady(CONFIG.timing.fontTimeout)]).then(function () {
-      introTl = buildIntro(chars, nameChars);
+      introTl = buildIntro(story, chars, nameChars);
       introTl.play();
       if (wantSkip) introTl.progress(1);
     });

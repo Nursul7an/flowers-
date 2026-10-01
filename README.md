@@ -29,7 +29,7 @@ npx http-server -p 8080 .
 
 ## Как поменять текст / цвета
 
-Всё в объекте `CONFIG` в начале `js/main.js`: `dedication`, `name`, `button`, `replay`, палитры пионов, позиции цветов, тайминги. Свой трек: положите `assets/music.mp3` (royalty-free) и укажите `music.src: 'assets/music.mp3'`. Чтобы музыка включалась вместе с букетом — `music.startWithBouquet: true`.
+Всё в объекте `CONFIG` в начале `js/main.js`: `story` (строки-«история», которые появляются по словам и растворяются перед посвящением), `dedication`, `hint`, `name`, `button`, `replay`, палитры пионов, позиции цветов, тайминги. Свой трек: положите `assets/music.mp3` (royalty-free) и укажите `music.src: 'assets/music.mp3'`. Чтобы музыка включалась вместе с букетом — `music.startWithBouquet: true`.
 
 После изменения цветов перегенерируйте превью и fallback:
 
