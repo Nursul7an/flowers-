@@ -24,33 +24,40 @@
 
     bouquet: {
       seed: 11,
-      flowerCount: 7, // 5–7
-      bloomGap: 0.32,
-      // edge → centre gradients per flower shade
+      flowerCount: 10,
+      bloomGap: 0.24,
+      // light rim → mid → deep base; shade = colour of the crevices
       palettes: [
-        { edge: '#FFE4EC', mid: '#F7B7C8', base: '#E77FA0', core: '#C9557E' }, // нежно-розовый
-        { edge: '#FAD0DC', mid: '#EE93AE', base: '#D45F86', core: '#A9406A' }, // насыщенный
-        { edge: '#FFF5F8', mid: '#FCD6E1', base: '#EFA3BA', core: '#D97A9A' }  // светлый
+        { light: '#FBD0E2', mid: '#F08DB9', deep: '#D24E91', shade: '#8E2A62' }, // ярко-розовый
+        { light: '#FDE2EB', mid: '#F5B0C8', deep: '#E07CA3', shade: '#9E4670' }, // розовый
+        { light: '#FFF2F5', mid: '#FAD3DF', deep: '#EFA9BF', shade: '#B47388' }, // нежный
+        { light: '#FFFDF8', mid: '#FAEEE8', deep: '#EBCFCF', shade: '#A88C90' }, // кремово-белый
+        { light: '#F8D8EC', mid: '#ECA4D0', deep: '#CF6DAE', shade: '#8C3B78' }  // сиренево-розовый
       ],
-      // viewBox 400×490 (y from 70); x, y = centre of the head, r = radius
+      // viewBox x −10…410, y 80…560; x, y = centre of the head, r = radius
       flowers: [
-        { x: 200, y: 152, r: 66, palette: 0, tilt: 0 },
-        { x: 118, y: 208, r: 58, palette: 2, tilt: -14 },
-        { x: 286, y: 202, r: 60, palette: 1, tilt: 12 },
-        { x: 152, y: 294, r: 54, palette: 1, tilt: -8 },
-        { x: 258, y: 288, r: 56, palette: 0, tilt: 10 },
-        { x: 76, y: 304, r: 44, palette: 0, tilt: -20 },
-        { x: 328, y: 302, r: 44, palette: 2, tilt: 20 }
+        { x: 135, y: 185, r: 56, palette: 1, tilt: -10 },
+        { x: 205, y: 165, r: 60, palette: 0, tilt: 4 },
+        { x: 275, y: 188, r: 56, palette: 4, tilt: 12 },
+        { x: 80, y: 252, r: 54, palette: 2, tilt: -18 },
+        { x: 160, y: 240, r: 62, palette: 3, tilt: -6 },
+        { x: 245, y: 236, r: 62, palette: 0, tilt: 8 },
+        { x: 325, y: 254, r: 54, palette: 1, tilt: 18 },
+        { x: 118, y: 312, r: 58, palette: 0, tilt: -10 },
+        { x: 200, y: 305, r: 64, palette: 1, tilt: 0 },
+        { x: 284, y: 314, r: 58, palette: 2, tilt: 10 }
       ],
-      bloomOrder: [0, 1, 2, 4, 3, 6, 5],
+      bloomOrder: [8, 4, 5, 1, 0, 2, 7, 9, 3, 6],
       buds: [
-        { x: 46, y: 214, r: 12, tilt: -24 },
-        { x: 358, y: 196, r: 12, tilt: 22 }
+        { x: 44, y: 196, r: 11, tilt: -24, palette: 0 },
+        { x: 362, y: 192, r: 11, tilt: 22, palette: 4 }
       ],
-      // compound leaves around the tie: [dx, angle, length]
-      collar: [[-6, -74, 118], [-4, -46, 140], [-2, -16, 120], [2, 16, 120], [4, 46, 140], [6, 74, 118]],
-      // tall leaves hidden behind the heads — fill the gaps between flowers
-      backLeaves: [[200, 300, -10, 120], [196, 290, 24, 110], [150, 240, -40, 70], [252, 236, 40, 70]]
+      // leaves peeking between the flowers and the paper: [x, y, angle, length, compound]
+      leaves: [
+        [34, 322, -72, 70, true], [368, 324, 72, 70, true],
+        [70, 206, -46, 56, false], [336, 202, 46, 56, false],
+        [165, 132, -24, 46, false], [248, 132, 26, 46, false]
+      ]
     }
   };
 

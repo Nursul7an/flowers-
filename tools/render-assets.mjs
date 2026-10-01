@@ -14,8 +14,8 @@ const browser = await chromium.launch();
   const svg = await page.evaluate(() => {
     const s = window.Flowers.debug.bouquet.svg.cloneNode(true);
     s.removeAttribute('style');
-    s.setAttribute('width', '400');
-    s.setAttribute('height', '490');
+    s.setAttribute('width', '420');
+    s.setAttribute('height', '480');
     return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(s);
   });
   writeFileSync('assets/bouquet.svg', svg);
@@ -26,7 +26,8 @@ const browser = await chromium.launch();
 {
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, ignoreHTTPSErrors: true });
   await page.goto(BASE + '?poster');
-  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => document.fonts.load('48px "Marck Script"', 'Дарии'));
+  await page.waitForFunction(() => document.fonts.check('48px "Marck Script"', 'Дарии'), null, { timeout: 15000 });
   await page.addStyleTag({ content: `
     #sound, #intro, #finale { display: none !important; }
     .og-title { position: absolute; left: 70px; top: 0; bottom: 0; width: 560px; z-index: 4;
@@ -40,7 +41,7 @@ const browser = await chromium.launch();
   await page.evaluate(() => {
     const { particles } = window.Flowers.debug;
     const wrap = document.querySelector('#bouquet-wrap');
-    wrap.style.left = '74%'; wrap.style.height = '610px'; wrap.style.width = (610 * 400 / 490) + 'px';
+    wrap.style.left = '74%'; wrap.style.height = '610px'; wrap.style.width = (610 * 420 / 480) + 'px';
     wrap.style.bottom = '-4px';
     const t = document.createElement('div');
     t.className = 'og-title';

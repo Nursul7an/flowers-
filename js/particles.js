@@ -55,9 +55,11 @@
 
     var fireSprite = glowSprite('rgba(255,217,160,');
     var petalSprites = [
-      petalSprite('#FFE4EC', '#F7B7C8'),
-      petalSprite('#F7B7C8', '#E77FA0'),
-      petalSprite('#FCD3DF', '#EE93AE')
+      petalSprite('#FDE2EB', '#F5B0C8'),
+      petalSprite('#FBD0E2', '#E06AA4'),
+      petalSprite('#FFF2F5', '#F2B9CB'),
+      petalSprite('#FFFDF8', '#F1DCD8'),
+      petalSprite('#F8D8EC', '#DD86C0')
     ];
 
     var fireflies = [];
