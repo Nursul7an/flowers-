@@ -12,11 +12,11 @@
        После деплоя замените относительные пути на абсолютные (https://<домен>/assets/og.jpg) -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Для Дарии 🌸">
-  <meta property="og:description" content="Эти цветы — для тебя. Открой 💗">
+  <meta property="og:description" content="Одна вершина, один закат и цветы — для тебя 🌸">
   <meta property="og:image" content="assets/og.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Букет розовых пионов на сумеречном фоне">
+  <meta property="og:image:alt" content="Букет розовых пионов на фоне Фудзиямы на закате">
   <meta name="twitter:card" content="summary_large_image">
 
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -34,19 +34,26 @@
 </head>
 <body>
   <main id="stage">
-    <div class="sky-glow" aria-hidden="true"></div>
+    <div id="world" aria-hidden="true"></div>
+    <div class="dim" aria-hidden="true"></div>
     <div class="bouquet-light" aria-hidden="true"></div>
     <div id="bouquet-wrap" aria-hidden="true"></div>
     <canvas id="sky" aria-hidden="true"></canvas>
 
+    <div id="alti" aria-hidden="true"><span class="alti-ico">⛰</span><span class="alti-val">0</span><span class="alti-unit">м</span></div>
+
+    <section id="congrats" aria-live="polite">
+      <p class="c-title">Вершина покорена!</p>
+      <p class="c-alt">3 776 м · Фудзияма</p>
+      <p class="c-sub">Поздравляю, Дария! 🎉</p>
+    </section>
+
     <section id="intro">
       <div class="intro-text">
-        <div class="story"></div>
-        <p class="dedication">Эти — для самой доброй и самой красивой девушки на свете —</p>
-        <p class="name"><span class="name-glow" aria-hidden="true">Дарии</span><span class="name-text">Дарии</span><span class="name-shine" aria-hidden="true">Дарии</span></p>
+        <p class="lead">Каждая вершина тебе по силам.</p>
+        <p class="dedication">А эти цветы — для тебя,</p>
+        <p class="name"><span class="name-glow" aria-hidden="true">Дария</span><span class="name-text">Дария</span><span class="name-shine" aria-hidden="true">Дария</span></p>
       </div>
-      <button id="open" class="cta" type="button">Для тебя 🌸</button>
-      <p class="hint">нажми — и они распустятся</p>
     </section>
 
     <noscript>
@@ -62,6 +69,7 @@
   </main>
 
   <script src="js/vendor/gsap.min.js"></script>
+  <script src="js/world.js"></script>
   <script src="js/peony.js"></script>
   <script src="js/particles.js"></script>
   <script src="js/music.js"></script>

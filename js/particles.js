@@ -62,6 +62,23 @@
       petalSprite('#F8D8EC', '#DD86C0')
     ];
 
+    // fireworks: coloured glow sprites; confetti: small paper rectangles
+    var FW_COLORS = {
+      gold: glowSprite('rgba(255,214,140,'),
+      pink: glowSprite('rgba(255,140,190,'),
+      rose: glowSprite('rgba(255,95,150,'),
+      lilac: glowSprite('rgba(200,150,255,'),
+      white: glowSprite('rgba(255,250,245,'),
+      mint: glowSprite('rgba(150,255,215,')
+    };
+    var confettiSprites = ['#FFD36E', '#FF8FB8', '#FFFFFF', '#B9A2FF', '#7FE3C4', '#FF6F91'].map(function (c) {
+      return sprite(10, 16, function (g, w, h) { g.fillStyle = c; g.fillRect(0, 0, w, h); });
+    });
+    var rockets = new Array(12);
+    var fsparks = new Array(520);
+    for (var r0 = 0; r0 < rockets.length; r0++) rockets[r0] = { on: false };
+    for (r0 = 0; r0 < fsparks.length; r0++) fsparks[r0] = { on: false };
+
     var fireflies = [];
     var petals = new Array(90);
     var sparks = new Array(40);
@@ -118,7 +135,7 @@
       return null;
     }
 
-    function spawnPetal(x, y, vx, vy, kind) {
+    function spawnPetal(x, y, vx, vy, kind, img) {
       var p = freePetal();
       if (!p) return null;
       p.on = true;
@@ -131,7 +148,7 @@
       p.sway = rand(10, 28);
       p.swayF = rand(0.6, 1.3);
       p.size = kind === 'single' ? rand(0.7, 0.8) : rand(0.38, 0.7);
-      p.img = petalSprites[(Math.random() * petalSprites.length) | 0];
+      p.img = img || petalSprites[(Math.random() * petalSprites.length) | 0];
       p.age = 0;
       p.life = kind === 'burst' ? rand(5, 8) : 40;
       p.fall = rand(28, 56) * (reduced ? 0.6 : 1);
@@ -185,6 +202,28 @@
         if (p.y > H + 40 || p.x < -80 || p.x > W + 80 || p.age > p.life) killPetal(p);
       }
 
+      // fireworks: rockets rise, then explode into sparks
+      for (i = 0; i < rockets.length; i++) {
+        var rk = rockets[i];
+        if (!rk.on) continue;
+        rk.age += dt;
+        var k = Math.min(1, rk.age / rk.dur);
+        var e = 1 - Math.pow(1 - k, 2.2); // decelerate like a real shell
+        rk.x = rk.x0 + (rk.x1 - rk.x0) * e + Math.sin(rk.age * 14) * 1.2;
+        rk.y = rk.y0 + (rk.y1 - rk.y0) * e;
+        if (Math.random() < 0.9) addSpark(rk.x, rk.y, rand(-14, 14), rand(10, 50), 0.45, 5, 'gold', 0, 0.5);
+        if (k >= 1) { rk.on = false; explode(rk); }
+      }
+      for (i = 0; i < fsparks.length; i++) {
+        var fs = fsparks[i];
+        if (!fs.on) continue;
+        fs.age += dt;
+        var dr = Math.pow(fs.drag, dt * 60);
+        fs.vx *= dr; fs.vy = fs.vy * dr + fs.g * dt;
+        fs.x += fs.vx * dt; fs.y += fs.vy * dt;
+        if (fs.age > fs.life) fs.on = false;
+      }
+
       // sparks
       for (i = 0; i < sparks.length; i++) {
         var s = sparks[i];
@@ -218,6 +257,22 @@
         ctx.drawImage(fireSprite, s.x - ss / 2, s.y - ss / 2, ss, ss);
       }
 
+      for (i = 0; i < fsparks.length; i++) {
+        var fs = fsparks[i];
+        if (!fs.on) continue;
+        var kk = 1 - fs.age / fs.life;
+        // crackle: sparks twinkle as they fade
+        ctx.globalAlpha = kk * (fs.tw ? (0.55 + 0.45 * Math.sin(fs.age * 40 + fs.ph)) : 1);
+        var fz = fs.size * (0.5 + 0.5 * kk);
+        ctx.drawImage(FW_COLORS[fs.c], fs.x - fz / 2, fs.y - fz / 2, fz, fz);
+      }
+      for (i = 0; i < rockets.length; i++) {
+        var rk = rockets[i];
+        if (!rk.on) continue;
+        ctx.globalAlpha = 1;
+        ctx.drawImage(FW_COLORS.white, rk.x - 7, rk.y - 7, 14, 14);
+      }
+
       ctx.globalCompositeOperation = 'source-over';
       for (i = 0; i < petals.length; i++) {
         var p = petals[i];
@@ -228,7 +283,7 @@
         var sc = p.size;
         // rotate + 3D-ish tumble (squash along local y)
         ctx.setTransform(c * sc * dpr, sn * sc * dpr, -sn * sc * fl * dpr, c * sc * fl * dpr, p.x * dpr, p.y * dpr);
-        ctx.drawImage(p.img, -20, -26);
+        ctx.drawImage(p.img, -p.img.width / 2, -p.img.height / 2);
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.globalAlpha = 1;
@@ -249,6 +304,47 @@
       } else {
         slowStrikes = 0;
       }
+    }
+
+    function addSpark(x, y, vx, vy, life, size, c, tw, drag, g) {
+      for (var i = 0; i < fsparks.length; i++) {
+        var s = fsparks[i];
+        if (s.on) continue;
+        s.on = true; s.x = x; s.y = y; s.vx = vx; s.vy = vy;
+        s.age = 0; s.life = life; s.size = size; s.c = c; s.tw = tw;
+        s.drag = drag === undefined ? 0.965 : drag; s.g = g === undefined ? 70 : g;
+        s.ph = Math.random() * 6.28;
+        return s;
+      }
+      return null;
+    }
+
+    function explode(rk) {
+      var n = Math.round(rk.count * quality * (reduced ? 0.5 : 1));
+      var colors = rk.colors;
+      var i, a, sp;
+      if (rk.shape === 'heart') {
+        for (i = 0; i < n; i++) {
+          var tt = (i / n) * Math.PI * 2;
+          var hx = 16 * Math.pow(Math.sin(tt), 3);
+          var hy = -(13 * Math.cos(tt) - 5 * Math.cos(2 * tt) - 2 * Math.cos(3 * tt) - Math.cos(4 * tt));
+          addSpark(rk.x, rk.y, hx * rk.power / 16, hy * rk.power / 16, rand(1.6, 2.1), rand(14, 20), colors[i % colors.length], 1, 0.955, 22);
+        }
+      } else if (rk.shape === 'willow') {
+        for (i = 0; i < n; i++) {
+          a = rand(0, Math.PI * 2); sp = rk.power * rand(0.55, 1);
+          addSpark(rk.x, rk.y, Math.cos(a) * sp, Math.sin(a) * sp, rand(2.2, 3.0), rand(9, 14), 'gold', 1, 0.95, 55);
+        }
+      } else {
+        // peony shell: two rings for depth
+        for (i = 0; i < n; i++) {
+          a = (i / n) * Math.PI * 2 + rand(-0.05, 0.05);
+          sp = rk.power * (i % 3 === 0 ? rand(0.45, 0.6) : rand(0.88, 1));
+          addSpark(rk.x, rk.y, Math.cos(a) * sp, Math.sin(a) * sp, rand(1.2, 1.9), rand(12, 18), colors[i % colors.length], i % 4 === 0, 0.962, 70);
+        }
+      }
+      // bright flash at the centre
+      addSpark(rk.x, rk.y, 0, 0, 0.25, rk.power * 0.5, 'white', 0, 1, 0);
     }
 
     function frame(now) {
@@ -281,6 +377,31 @@
         for (var i = 0; i < count; i++) {
           var a = rand(0, Math.PI * 2), sp = rand(90, 300) * (reduced ? 0.5 : 1);
           spawnPetal(x, y, Math.cos(a) * sp, Math.sin(a) * sp - 60, 'burst');
+        }
+      },
+      // salut: a shell from (x0,y0) that bursts at (x1,y1)
+      firework: function (x0, y0, x1, y1, o) {
+        o = o || {};
+        for (var i = 0; i < rockets.length; i++) {
+          var rk = rockets[i];
+          if (rk.on) continue;
+          rk.on = true; rk.age = 0;
+          rk.x0 = rk.x = x0; rk.y0 = rk.y = y0; rk.x1 = x1; rk.y1 = y1;
+          rk.dur = o.dur || rand(0.9, 1.25);
+          rk.shape = o.shape || 'peony';
+          rk.colors = o.colors || ['gold', 'pink'];
+          rk.count = o.count || 70;
+          rk.power = o.power || Math.min(W, H) * 0.42;
+          return;
+        }
+      },
+      confetti: function (x, y, count, dir) {
+        count = Math.round(count * quality * (reduced ? 0.5 : 1));
+        for (var i = 0; i < count; i++) {
+          var a = -Math.PI / 2 + dir * rand(0.15, 0.75), sp = rand(380, 720);
+          var p = spawnPetal(x, y, Math.cos(a) * sp, Math.sin(a) * sp, 'burst',
+            confettiSprites[(Math.random() * confettiSprites.length) | 0]);
+          if (p) { p.size = rand(0.5, 0.9); p.vf = rand(6, 12); p.vr = rand(-5, 5); p.fall = rand(70, 120); p.life = rand(4, 6); }
         }
       },
       single: function (x, y) { spawnPetal(x, y, rand(-6, 6), 8, 'single'); },

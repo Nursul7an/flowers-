@@ -29,14 +29,14 @@ const browser = await chromium.launch();
   await page.evaluate(() => document.fonts.load('48px "Marck Script"', 'Дарии'));
   await page.waitForFunction(() => document.fonts.check('48px "Marck Script"', 'Дарии'), null, { timeout: 15000 });
   await page.addStyleTag({ content: `
-    #sound, #intro, #finale { display: none !important; }
+    #sound, #intro, #finale, #alti, #congrats { display: none !important; }
     .og-title { position: absolute; left: 70px; top: 0; bottom: 0; width: 560px; z-index: 4;
       display: flex; flex-direction: column; justify-content: center; text-align: center; }
-    .og-title .small { font-family: var(--script); font-size: 64px; color: var(--ink);
-      text-shadow: 0 0 18px rgba(255,217,160,.4); }
+    .og-title .small { font-family: var(--script); font-size: 54px; white-space: nowrap; color: var(--ink);
+      text-shadow: 0 0 18px rgba(255,217,160,.5), 0 2px 6px rgba(20,10,40,.8); }
     .og-title .big { font-family: var(--script); font-size: 150px; line-height: 1.05; color: #FFE9F0;
       text-shadow: 0 0 24px rgba(247,140,175,.95), 0 0 60px rgba(231,127,160,.75); }
-    .og-title .sub { font-family: var(--serif); font-style: italic; font-size: 34px; color: var(--ink-soft); margin-top: 10px; }
+    .og-title .sub { font-family: var(--serif); font-style: italic; font-size: 32px; color: #FFF1F4; margin-top: 10px; text-shadow: 0 2px 6px rgba(20,10,40,.9); }
   `});
   await page.evaluate(() => {
     const { particles } = window.Flowers.debug;
@@ -45,7 +45,7 @@ const browser = await chromium.launch();
     wrap.style.bottom = '-4px';
     const t = document.createElement('div');
     t.className = 'og-title';
-    t.innerHTML = '<div class="small">Эти цветы — для</div><div class="big">Дарии</div><div class="sub">открой 🌸</div>';
+    t.innerHTML = '<div class="small">Для самой смелой —</div><div class="big">Дарии</div><div class="sub">одна вершина, один закат и цветы 🌸</div>';
     document.querySelector('#stage').appendChild(t);
     particles.snapshot(14);
   });

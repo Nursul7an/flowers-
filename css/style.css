@@ -1,12 +1,9 @@
 :root {
-  --sky-top: #2B1B2F;
-  --sky-bottom: #6E3B5C;
-  --petal: #F7B7C8;
-  --petal-deep: #E77FA0;
-  --petal-light: #FFE4EC;
+  --sky-top: #1B1C47;
+  --sky-bottom: #7C4C86;
   --gold: #FFD9A0;
   --ink: #FFF1F4;
-  --ink-soft: rgba(255, 236, 242, 0.78);
+  --ink-soft: rgba(255, 236, 242, 0.8);
   --script: "Marck Script", "Segoe Script", cursive;
   --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
   --safe-b: env(safe-area-inset-bottom, 0px);
@@ -26,7 +23,7 @@ html, body {
 
 body {
   font-family: var(--serif);
-  background: linear-gradient(180deg, var(--sky-top) 0%, #45263F 45%, var(--sky-bottom) 100%);
+  background: linear-gradient(180deg, var(--sky-top) 0%, #4A3A7A 45%, var(--sky-bottom) 75%, #F2A68E 100%);
 }
 
 #stage {
@@ -41,23 +38,36 @@ body {
   -webkit-user-select: none;
 }
 
-/* ── Background light ─────────────────────────── */
-.sky-glow {
+/* ── Fuji world ───────────────────────────────── */
+#world,
+#world svg {
   position: absolute;
-  inset: auto -20% -30% -20%;
-  height: 70%;
-  background: radial-gradient(ellipse at 50% 100%, rgba(255, 190, 170, 0.32), rgba(255, 170, 190, 0.08) 45%, transparent 70%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#world { z-index: 0; pointer-events: none; }
+
+/* darkens the landscape behind the bouquet */
+.dim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(18, 14, 44, 0.55) 0%, rgba(30, 18, 48, 0.2) 40%, rgba(24, 14, 36, 0.55) 100%);
+  opacity: 0;
   pointer-events: none;
 }
 
 .bouquet-light {
   position: absolute;
   left: 50%;
-  bottom: 18%;
-  width: min(120vw, 900px);
-  height: min(120vw, 900px);
+  bottom: 14%;
+  z-index: 1;
+  width: min(130vw, 900px);
+  height: min(130vw, 900px);
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(255, 217, 160, 0.30) 0%, rgba(247, 183, 200, 0.14) 35%, transparent 65%);
+  background: radial-gradient(circle, rgba(255, 217, 160, 0.32) 0%, rgba(247, 183, 200, 0.14) 35%, transparent 65%);
   opacity: 0;
   pointer-events: none;
 }
@@ -69,6 +79,81 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 3;
+}
+
+/* ── Altimeter ────────────────────────────────── */
+#alti {
+  position: absolute;
+  top: calc(14px + var(--safe-t));
+  left: 14px;
+  z-index: 4;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 14px 6px 10px;
+  border-radius: 999px;
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: #FFF4E6;
+  background: rgba(20, 16, 50, 0.38);
+  border: 1px solid rgba(255, 217, 160, 0.3);
+  opacity: 0;
+  visibility: hidden;
+}
+.alti-ico { font-size: 1rem; }
+.alti-val { min-width: 3.2em; text-align: right; }
+.alti-unit { opacity: 0.75; }
+
+/* ── Congratulations ──────────────────────────── */
+#congrats {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 58%;
+  z-index: 4;
+  text-align: center;
+  padding: 0 12px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.c-title {
+  font-family: var(--script);
+  font-size: clamp(1.9rem, min(10.4vw, 12vh), 5rem);
+  line-height: 1.1;
+  white-space: nowrap;
+  filter: drop-shadow(0 0 14px rgba(255, 190, 120, 0.65)) drop-shadow(0 2px 2px rgba(60, 20, 40, 0.5));
+}
+.c-title .char {
+  color: #FFE2A0;
+  background: linear-gradient(180deg, #FFFBEA 0%, #FFD98A 50%, #F49A62 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.c-alt {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 3px 14px;
+  font-family: var(--serif);
+  font-size: clamp(0.95rem, min(4.4vw, 4.6vh), 1.4rem);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: #2B1B3A;
+  background: linear-gradient(135deg, #FFF1D2, #FFD59A);
+  border-radius: 999px;
+  box-shadow: 0 4px 22px rgba(255, 200, 130, 0.5);
+}
+
+.c-sub {
+  margin-top: 0.6rem;
+  font-family: var(--script);
+  font-size: clamp(1.5rem, min(8vw, 8.5vh), 3rem);
+  color: #FFF1F6;
+  text-shadow: 0 0 18px rgba(255, 140, 190, 0.9), 0 2px 3px rgba(40, 10, 40, 0.6);
 }
 
 /* ── Bouquet ──────────────────────────────────── */
@@ -90,16 +175,14 @@ body {
   visibility: hidden;
 }
 
-#bouquet-wrap.swaying svg {
-  animation: sway 7s ease-in-out infinite;
-}
+#bouquet-wrap.swaying svg { animation: sway 7s ease-in-out infinite; }
 
 @keyframes sway {
   0%, 100% { transform: rotate(-0.9deg); }
   50% { transform: rotate(0.9deg); }
 }
 
-/* ── Intro text ───────────────────────────────── */
+/* ── Final text ───────────────────────────────── */
 #intro {
   position: relative;
   z-index: 4;
@@ -109,20 +192,33 @@ body {
   transform-origin: 50% 0;
 }
 
+.intro-text { position: relative; }
+
+.lead {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.35rem, 5.6vw, 2rem);
+  letter-spacing: 0.02em;
+  color: #FFE9D6;
+  text-shadow: 0 0 16px rgba(255, 200, 150, 0.5), 0 1px 2px rgba(30, 10, 40, 0.6);
+}
+.lead .sw { display: inline-block; }
+
 .dedication {
+  margin-top: 0.35em;
   font-family: var(--script);
-  font-size: clamp(1.75rem, 7.2vw, 2.7rem);
-  line-height: 1.35;
+  font-size: clamp(2rem, 8.4vw, 3rem);
+  line-height: 1.3;
   color: var(--ink);
-  text-shadow: 0 0 18px rgba(255, 217, 160, 0.35), 0 0 2px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 0 18px rgba(255, 217, 160, 0.45), 0 1px 2px rgba(30, 10, 40, 0.6);
 }
 
 .name {
   position: relative;
   display: block;
-  margin-top: 0.15em;
+  margin-top: 0.05em;
   font-family: var(--script);
-  font-size: clamp(3.6rem, 18vw, 6rem);
+  font-size: clamp(3.8rem, 19vw, 6.4rem);
   line-height: 1.15;
   color: #FFE9F0;
 }
@@ -139,34 +235,6 @@ body {
   pointer-events: none;
 }
 
-/* story lines that appear and dissolve before the dedication */
-.story {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.story-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--script);
-  font-size: clamp(1.9rem, 7.6vw, 2.9rem);
-  line-height: 1.35;
-  color: #FFF4E6;
-  text-shadow: 0 0 22px rgba(255, 217, 160, 0.55), 0 0 2px rgba(255, 255, 255, 0.5);
-  visibility: hidden;
-}
-
-.story-line .sw { display: inline-block; }
-
-.intro-text { position: relative; }
-
 .name-shine {
   position: absolute;
   left: 0;
@@ -181,24 +249,11 @@ body {
   opacity: 0;
   pointer-events: none;
 }
-
-.name-shine.on {
-  opacity: 1;
-  animation: shine 5s ease-in-out infinite;
-}
+.name-shine.on { opacity: 1; animation: shine 5s ease-in-out infinite; }
 
 @keyframes shine {
   0% { background-position: 100% 0; }
   45%, 100% { background-position: 0% 0; }
-}
-
-.hint {
-  margin-top: 0.8rem;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1.05rem;
-  letter-spacing: 0.02em;
-  color: var(--ink-soft);
 }
 
 .word { display: inline-block; white-space: nowrap; }
@@ -214,27 +269,7 @@ body {
 /* ── Buttons ──────────────────────────────────── */
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
 
-.cta {
-  margin-top: clamp(1.4rem, 5vh, 2.6rem);
-  padding: 0.85em 2em;
-  font-family: var(--serif);
-  font-size: 1.3rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: #4A2240;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #FFE7C2, var(--gold) 45%, #F7C3A8);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset, 0 6px 30px rgba(255, 217, 160, 0.45), 0 0 60px rgba(247, 183, 200, 0.35);
-}
-
-.cta.breathing { animation: breathe 2.6s ease-in-out infinite; }
-
-@keyframes breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
-}
-
-.cta:focus-visible, .ghost:focus-visible, .sound:focus-visible {
+.ghost:focus-visible, .sound:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 4px;
 }
@@ -256,8 +291,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   font-size: 1.05rem;
   color: var(--ink-soft);
   border-radius: 999px;
-  border: 1px solid rgba(255, 217, 160, 0.35);
-  background: rgba(43, 27, 47, 0.25);
+  border: 1px solid rgba(255, 217, 160, 0.4);
+  background: rgba(30, 20, 50, 0.4);
 }
 
 .sound {
@@ -270,68 +305,67 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   border-radius: 50%;
   font-size: 1.2rem;
   line-height: 44px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 217, 160, 0.25);
-  opacity: 0.75;
+  background: rgba(20, 16, 50, 0.3);
+  border: 1px solid rgba(255, 217, 160, 0.3);
+  opacity: 0.8;
 }
 
 .veil {
   position: absolute;
   inset: 0;
   z-index: 5;
-  background: #0d080f;
+  background: #0b0a1c;
   pointer-events: none;
 }
 
 /* ── States ───────────────────────────────────── */
-/* JS on: hide the content until the timeline reveals it (no flash of system font) */
+/* JS on: text stays hidden until the timeline reveals it */
+.js .lead,
 .js .dedication,
 .js .name { visibility: hidden; }
-.js .cta { visibility: hidden; opacity: 0; pointer-events: none; }
-.js .hint { visibility: hidden; opacity: 0; }
 .js .name-glow { opacity: 0; }
 
-/* No JS: static dedication + static bouquet */
+/* No JS: static text + static bouquet */
 html:not(.js) #stage { flex-direction: column; justify-content: flex-start; padding-top: 6vh; }
-html:not(.js) .cta,
-html:not(.js) .hint,
+html:not(.js) #congrats,
+html:not(.js) #alti,
 html:not(.js) .name-shine,
 html:not(.js) .sound,
 html:not(.js) .veil,
 html:not(.js) #finale,
 html:not(.js) .name-glow { display: none; }
-html:not(.js) .dedication { font-size: clamp(1.4rem, 5.5vw, 2rem); }
-html:not(.js) .name { font-size: clamp(2.6rem, 12vw, 4.5rem); }
+html:not(.js) .dedication { font-size: clamp(1.6rem, 6.5vw, 2.2rem); }
+html:not(.js) .name { font-size: clamp(2.8rem, 13vw, 4.6rem); }
 
 .static-bouquet {
   display: block;
   width: auto;
   max-width: 92vw;
-  height: 52vh;
+  height: 50vh;
   margin: 2vh auto 0;
 }
 
 /* Runtime fallback (GSAP failed / JS error) */
 .fallback #stage { flex-direction: column; justify-content: flex-start; padding-top: 6vh; }
+.fallback .lead,
 .fallback .dedication,
 .fallback .name { visibility: visible !important; }
-.fallback .char { opacity: 1 !important; transform: none !important; }
-.fallback .cta,
-.fallback .hint,
-.fallback .story,
+.fallback .char,
+.fallback .sw { opacity: 1 !important; transform: none !important; }
+.fallback #congrats,
+.fallback #alti,
+.fallback #world,
 .fallback .name-shine,
 .fallback .veil,
 .fallback .sound,
-.fallback #finale .ghost,
+.fallback #finale,
 .fallback #bouquet-wrap,
 .fallback .name-glow { display: none !important; }
-.fallback #finale { position: static; visibility: visible; opacity: 1; }
 .fallback #intro { transform: none !important; }
-.fallback .dedication { font-size: clamp(1.4rem, 5.5vw, 2rem); }
-.fallback .name { font-size: clamp(2.6rem, 12vw, 4.5rem); }
+.fallback .dedication { font-size: clamp(1.6rem, 6.5vw, 2.2rem); }
+.fallback .name { font-size: clamp(2.8rem, 13vw, 4.6rem); }
 
 @media (prefers-reduced-motion: reduce) {
   .name-shine.on,
-  .cta.breathing,
   #bouquet-wrap.swaying svg { animation: none; }
 }
