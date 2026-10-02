@@ -234,152 +234,98 @@
     ankle: curve([[0, -12], [0.12, 0], [0.45, 8], [0.6, 28], [0.75, 6], [0.9, -6]])
   };
 
+  var hikerId = 0;
   function buildHiker(parent, defs) {
+    var uid = 'hk' + (hikerId++);
     var root = el('g', {}, parent);
-    stops(el('radialGradient', { id: 'hk-contact' }, defs), [['0', '#1A0E22', 0.4], ['1', '#1A0E22', 0]]);
-    el('ellipse', { cx: 2, cy: 4.5, rx: 15, ry: 3, fill: 'url(#hk-contact)' }, root); // contact shadow
+    // warm backlight halo + contact shadow
+    stops(el('radialGradient', { id: uid + '-halo' }, defs), [['0', '#FFD3A0', 0.55], ['0.45', '#FFB38A', 0.22], ['1', '#FF9A84', 0]]);
+    stops(el('radialGradient', { id: uid + '-contact' }, defs), [['0', '#140A1E', 0.45], ['1', '#140A1E', 0]]);
+    el('ellipse', { cx: 2, cy: -44, rx: 40, ry: 58, fill: 'url(#' + uid + '-halo)' }, root);
+    el('ellipse', { cx: 2, cy: 4.5, rx: 14, ry: 2.6, fill: 'url(#' + uid + '-contact)' }, root);
     var flip = el('g', {}, root);
-    // horizontal shading across a part: back side (−x) darker, sun side (+x) lit
-    function shade(id, dark, mid, light) {
-      stops(el('linearGradient', { id: id, x1: 0, y1: 0, x2: 1, y2: 0 }, defs), [['0', dark], ['0.55', mid], ['1', light]]);
-      return 'url(#' + id + ')';
-    }
-    var C = {
-      skin: shade('hk-skin', '#D9A486', '#F0C3A2', '#FAD7BC'),
-      skinBack: shade('hk-skinb', '#C08A6E', '#D9A88A', '#E6B898'),
-      jacket: shade('hk-jacket', '#33503A', '#4C7253', '#6F9672'),
-      sleeveBack: shade('hk-sleeveb', '#2A4231', '#3A5A41', '#4C7253'),
-      pants: shade('hk-pants', '#4A4134', '#6E6250', '#8C7E66'),
-      pantsBack: shade('hk-pantsb', '#3B3329', '#51473A', '#62574A'),
-      boot: shade('hk-boot', '#2C1F18', '#4A3324', '#6A4A34'),
-      pack: shade('hk-pack', '#5C3E26', '#8A6240', '#A87A52'),
-      hair: shade('hk-hair', '#24150F', '#3B2620', '#5A3A2C'),
-      cap: shade('hk-cap', '#B4551F', '#E07B3F', '#F59A5C')
-    };
+    // rim light: a warm copy of the figure, nudged toward the sun, drawn underneath
+    var rim = el('use', { fill: '#FFC992', color: '#FFC992', opacity: 0.95 }, flip);
+    var rim2 = el('use', { fill: '#FF9E7A', color: '#FF9E7A', opacity: 0.5 }, flip);
+    var figWrap = el('g', { fill: '#1E1230', color: '#1E1230' }, flip);
+    var fig = el('g', { id: uid + '-fig' }, figWrap);
+    rim.setAttribute('href', '#' + uid + '-fig');
+    rim.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + uid + '-fig');
+    rim2.setAttribute('href', '#' + uid + '-fig');
+    rim2.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + uid + '-fig');
 
-    // tapered capsule hanging down from (0,0) to (0,len)
-    function seg(p, len, w0, w1, fill, extra) {
+    // tapered capsule hanging down from (0,0) to (0,len); fill inherited (silhouette)
+    function seg(p, len, w0, w1) {
       var a = w0 / 2, b = w1 / 2;
-      var d = 'M' + n(-a) + ' 0 C' + n(-a * 1.08) + ' ' + n(len * 0.35) + ' ' + n(-b * 1.05) + ' ' + n(len * 0.7) + ' ' + n(-b) + ' ' + n(len) +
+      return el('path', { d: 'M' + n(-a) + ' 0 C' + n(-a * 1.1) + ' ' + n(len * 0.35) + ' ' + n(-b * 1.05) + ' ' + n(len * 0.7) + ' ' + n(-b) + ' ' + n(len) +
         ' A' + n(b) + ' ' + n(b) + ' 0 0 0 ' + n(b) + ' ' + n(len) +
-        ' C' + n(b * 1.1) + ' ' + n(len * 0.7) + ' ' + n(a * 1.12) + ' ' + n(len * 0.35) + ' ' + n(a) + ' 0' +
-        ' A' + n(a) + ' ' + n(a) + ' 0 0 0 ' + n(-a) + ' 0Z';
-      return el('path', Object.assign({ d: d, fill: fill }, extra || {}), p);
+        ' C' + n(b * 1.1) + ' ' + n(len * 0.7) + ' ' + n(a * 1.15) + ' ' + n(len * 0.35) + ' ' + n(a) + ' 0' +
+        ' A' + n(a) + ' ' + n(a) + ' 0 0 0 ' + n(-a) + ' 0Z' }, p);
     }
-    function joint(p, x, y) {
-      var g = el('g', {}, p);
-      var j = el('g', {}, g);
-      return { g: g, j: j, x: x, y: y };
-    }
+    function joint(p, x, y) { var g = el('g', {}, p); return { g: g, x: x, y: y }; }
     function setJ(J, a) { J.g.setAttribute('transform', 'translate(' + n(J.x) + ' ' + n(J.y) + ') rotate(' + n(a) + ')'); }
 
-    var THIGH = 21, SHIN = 20, HIP_Y = -44;
-    function leg(front) {
-      var hip = joint(flip, 0.5, HIP_Y);
-      seg(hip.g, THIGH + 2, 9.5, 7.2, front ? C.pants : C.pantsBack);
+    var THIGH = 21.5, SHIN = 21, HIP_Y = -45.5;
+    function leg() {
+      var hip = joint(fig, 0.5, HIP_Y);
+      seg(hip.g, THIGH + 2, 7, 5);                   // slim leggings
       var knee = joint(hip.g, 0, THIGH);
-      seg(knee.g, SHIN + 1, 7, 5.2, front ? C.pants : C.pantsBack);
-      // knee crease and cuff of the trousers
-      el('path', { d: 'M-2.6 1 Q0 3 2.8 1.2', fill: 'none', stroke: 'rgba(30,20,10,0.35)', 'stroke-width': 0.7 }, knee.g);
+      seg(knee.g, SHIN + 1, 4.8, 3.2);
       var ankle = joint(knee.g, 0, SHIN);
-      // boot: shaft, toe box, lug sole, laces
-      var bt = ankle.g;
-      el('path', { d: 'M-3.6 -4.5 L3.4 -4.5 L3.9 -0.8 Q8.6 -0.6 10.2 1.6 Q10.8 3.2 9.6 3.6 L-4.4 3.6 Q-5.2 1 -3.6 -4.5Z', fill: C.boot }, bt);
-      el('path', { d: 'M-4.6 3.4 L9.8 3.4 L9.6 5 L-4.4 5Z', fill: '#1E1510' }, bt);
-      el('path', { d: 'M-3.4 5 l1 1 1-1 1 1 1-1 1 1 1-1 1 1 1-1 1 1 1-1 1 1 1-1', fill: 'none', stroke: '#1E1510', 'stroke-width': 0.9 }, bt);
-      el('path', { d: 'M3.2 -3.2 L5.4 -0.6 M2.6 -1.6 L4.4 0.6', stroke: '#D9C49A', 'stroke-width': 0.6, 'stroke-linecap': 'round' }, bt);
-      el('path', { d: 'M-3.8 -4.6 L3.6 -4.6 L3.4 -3.4 L-3.8 -3.4Z', fill: '#5A4630' }, bt);
+      // light hiking shoe
+      el('path', { d: 'M-2.8 -3 L2.6 -3 L3 -0.6 Q7.4 -0.2 8.4 1.8 Q8.6 3.4 7.2 3.6 L-3.4 3.6 Q-4 1 -2.8 -3Z' }, ankle.g);
       return { hip: hip, knee: knee, ankle: ankle };
     }
-
-    function arm(p, front) {
-      var sh = joint(p, 0.5, -67.5);
-      var sleeve = front ? C.jacket : C.sleeveBack;
-      seg(sh.g, 13.5, 6.4, 5.2, sleeve);
-      var el2 = joint(sh.g, 0, 12.5);
-      seg(el2.g, 12, 5.2, 4.4, sleeve);
-      el('rect', { x: -2.5, y: 10.2, width: 5, height: 2.2, rx: 1, fill: front ? '#2F4A35' : '#263B2C' }, el2.g); // cuff
-      var wrist = joint(el2.g, 0, 12.6);
-      // hand: palm + thumb, slightly cupped around the pole grip
-      el('path', { d: 'M-2 -0.6 Q-2.6 3.4 -0.6 4.6 Q2 5 2.6 2.4 L2.4 -0.4 Q0 -1.2 -2 -0.6Z', fill: front ? C.skin : C.skinBack }, wrist.g);
-      el('path', { d: 'M2.2 0.2 Q4 0.8 3.6 2.6', fill: 'none', stroke: front ? '#D9A486' : '#C08A6E', 'stroke-width': 1.3, 'stroke-linecap': 'round' }, wrist.g);
-      return { sh: sh, el: el2, wrist: wrist };
+    function arm(p) {
+      var sh = joint(p, 0.6, -68);
+      seg(sh.g, 13.5, 4.6, 3.6);
+      var elb = joint(sh.g, 0, 12.8);
+      seg(elb.g, 12.4, 3.6, 2.8);
+      var wrist = joint(elb.g, 0, 12.4);
+      el('path', { d: 'M-1.6 -0.4 Q-2.2 3.2 -0.4 4.2 Q1.8 4.6 2.2 2.2 L2 -0.4 Q0 -1 -1.6 -0.4Z' }, wrist.g);
+      return { sh: sh, el: elb, wrist: wrist };
     }
 
-    // back limbs first, then body, then near limbs
-    var backLeg = leg(false);
-    var body = el('g', {}, flip);
-    var backArm = arm(body, false);
-
-    // backpack (on the back, −x): frame, lid, side bottle, sleeping roll
-    el('path', { d: 'M-6 -72 Q-19 -73 -20 -64 L-20.5 -49 Q-20 -43 -12 -43 L-6 -44Z', fill: C.pack }, body);
-    el('path', { d: 'M-7 -73.5 Q-18 -76 -20.5 -68 L-19.5 -64.5 Q-12 -67 -6.5 -66Z', fill: '#6E4A2E' }, body);
-    el('path', { d: 'M-20 -57 L-20.5 -49 Q-19.5 -46 -15 -46 L-14.5 -55Z', fill: '#734F31' }, body);
-    el('rect', { x: -24, y: -58, width: 4.6, height: 11, rx: 2, fill: '#4F86A8' }, body);
-    el('rect', { x: -23.5, y: -60, width: 3.6, height: 2.4, rx: 0.8, fill: '#2E4D63' }, body);
-    el('ellipse', { cx: -13, cy: -75.5, rx: 8.6, ry: 3.6, fill: '#C4664A' }, body);
-    el('path', { d: 'M-17.5 -77.5 L-17.5 -73.5 M-8.5 -77.6 L-8.5 -73.4', stroke: '#8A3F2C', 'stroke-width': 1 }, body);
-
-    // torso: fitted softshell jacket, waist, hem
-    el('path', { d: 'M-6.2 -71 Q-1 -73.4 5 -71.5 Q9.6 -69.4 9.2 -63 Q8.2 -57 6.4 -52.5 Q6.2 -47 7.4 -41.5 L-6.6 -41.5 Q-5.4 -48 -5.8 -54 Q-7.4 -62 -6.2 -71Z', fill: C.jacket }, body);
-    el('path', { d: 'M5.6 -71 Q9 -66 7.4 -59 Q6.4 -55 6 -52', fill: 'none', stroke: 'rgba(255,214,170,0.35)', 'stroke-width': 1 }, body); // sun rim light
-    el('path', { d: 'M5 -70.5 Q7 -60 6.2 -42', fill: 'none', stroke: '#2B4431', 'stroke-width': 0.6 }, body);      // zipper
-    el('path', { d: 'M-1 -56 L5.6 -56.6 L5.4 -54.6 L-1 -54.2Z', fill: '#3E5E45' }, body);                           // chest pocket flap
-    el('path', { d: 'M-6.8 -43.6 L7.6 -43.6 L7.6 -40.8 L-6.8 -40.8Z', fill: '#2F4A35' }, body);                      // hem
-    // hip belt and shoulder strap of the pack, crossing in front
-    el('path', { d: 'M-12 -47.5 L8.2 -47 L8 -44.6 L-12 -45Z', fill: '#3A2A1E' }, body);
-    el('rect', { x: 5.6, y: -48, width: 3, height: 3.8, rx: 0.6, fill: '#1E1510' }, body);
-    el('path', { d: 'M-5 -72 Q4 -72 5.4 -64 Q6 -58 3.6 -48', fill: 'none', stroke: '#3A2A1E', 'stroke-width': 2.4 }, body);
-    el('path', { d: 'M3.4 -58 L7 -58.4', stroke: '#1E1510', 'stroke-width': 1.2 }, body);                         // sternum strap
-
-    // neck + head (profile facing +x)
+    var backLeg = leg();
+    var body = el('g', {}, fig);
+    var backArm = arm(body);
+    // small daypack
+    el('path', { d: 'M-4.6 -70 Q-13.4 -70.6 -14 -63 L-14 -53.5 Q-13.4 -49 -8 -49.6 L-4.4 -50.5Z' }, body);
+    el('path', { d: 'M-12 -71.4 Q-8 -73 -5 -71.4 L-5.4 -69.6 Q-8.6 -70.6 -11.6 -69.4Z' }, body);   // top loop
+    // fitted jacket: narrow waist, soft hips
+    el('path', { d: 'M-5.4 -71.2 Q-0.6 -73.6 4.6 -71.6 Q8.6 -69.4 8 -63.4 Q7.2 -58.6 5.4 -54.4 Q5 -50 6.4 -46 L-5.6 -45.6 Q-4.4 -50.6 -4.6 -55 Q-6.4 -62.6 -5.4 -71.2Z' }, body);
+    el('path', { d: 'M5.4 -54.4 Q8.6 -50.6 7.6 -45 L-6.4 -44.6 Q-5.4 -49 -4.6 -51Z' }, body);       // hips
+    // neck, head in profile, long loose hair
     var head = el('g', {}, body);
-    el('path', { d: 'M-0.6 -74 L4.2 -74 L4.6 -70.5 L-0.8 -70.5Z', fill: C.skinBack }, head);
-    el('path', { d: 'M-3.2 -73.6 Q1.6 -76 6 -73.8 L6.4 -71.2 Q1.6 -72.6 -3.4 -70.8Z', fill: '#2F4A35' }, head);        // collar
-    var pony = el('g', {}, head);
-    // ponytail: thick, tapering, with a lighter strand
-    el('path', { d: 'M0 0 C-5 1.5 -8.5 7 -8 14 C-7.6 19 -5.4 22.5 -3.4 24 C-4.4 19 -3.6 13 -1.2 8 C0.4 5 1.8 2.6 2.4 1.4Z', fill: C.hair }, pony);
-    el('path', { d: 'M-1.6 3 C-5 7 -6 12 -5.2 18', fill: 'none', stroke: '#6A4636', 'stroke-width': 0.8, 'stroke-linecap': 'round' }, pony);
-    el('rect', { x: -1.6, y: -1.4, width: 3.6, height: 2.6, rx: 1, fill: '#E07B3F', transform: 'rotate(-20)' }, pony); // hair tie
+    el('path', { d: 'M-0.2 -74.4 L3.8 -74.6 L4.2 -70.6 L-0.6 -70.4Z' }, head);
+    var hair = el('g', {}, head);
+    // flowing hair: long, wavy, streaming back past the shoulders
+    el('path', { d: 'M0 0 C-4 3 -7 8 -7.4 15 C-7.6 21 -6 26 -3.6 30 C-5.6 26.4 -5 22 -3.4 17.6 C-2.6 21 -1.6 23.6 0.4 25.6 C-1 21 -1.4 16 -0.4 11 C0.6 7 2.4 3.4 3.6 1.2Z' }, hair);
+    el('path', { d: 'M-1 4 C-4.6 10 -5.2 18 -3 25', fill: 'none', stroke: 'currentColor', 'stroke-width': 0.8, 'stroke-linecap': 'round' }, hair);
+    el('path', { d: 'M0.6 6 C-1.2 12 -0.8 19 1.6 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 0.6, 'stroke-linecap': 'round' }, hair);
     // skull + face profile: forehead, nose, lips, chin, jaw
-    el('path', { d: 'M-5.4 -80.5 Q-5.6 -86.8 1 -87.6 Q7.4 -88 8.6 -82.6 L8.8 -80.8 Q10.6 -78.4 10.8 -77.6 Q10.6 -77 9.4 -76.9 L9.6 -76 Q9 -75.5 9.6 -75 Q9 -74.4 9.2 -73.6 Q8.4 -72 5.6 -72.4 Q2.4 -72.6 0.6 -73.8 Q-4.8 -75.6 -5.4 -80.5Z', fill: C.skin }, head);
-    el('path', { d: 'M1.6 -80.6 Q-0.4 -80.4 -0.2 -78.2 Q0.2 -76.6 1.8 -76.8', fill: '#E3AE8E', stroke: '#C98C6C', 'stroke-width': 0.5 }, head); // ear
-    el('path', { d: 'M6.4 -80.2 Q7.4 -80.9 8.2 -80.1', fill: 'none', stroke: '#2B1B22', 'stroke-width': 0.8, 'stroke-linecap': 'round' }, head); // closed-ish eye
-    el('path', { d: 'M8.1 -80.2 L8.9 -79.5 M7.6 -80.6 L8.2 -81.4', stroke: '#2B1B22', 'stroke-width': 0.4 }, head);    // lashes
-    el('path', { d: 'M5.8 -82.4 Q7.2 -83.2 8.6 -82.6', fill: 'none', stroke: '#3B2620', 'stroke-width': 0.6 }, head);  // brow
-    el('ellipse', { cx: 6.4, cy: -77.4, rx: 1.8, ry: 1.2, fill: '#F08DA6', opacity: 0.45 }, head);                    // blush
-    el('path', { d: 'M9.3 -75.3 Q8.6 -75 8.2 -75.2', fill: 'none', stroke: '#B8575E', 'stroke-width': 0.7, 'stroke-linecap': 'round' }, head); // lips
-    // hair under the cap: side, nape, wisp over the ear
-    el('path', { d: 'M-5.6 -80 Q-6.2 -84.4 -2.6 -85.6 L2.8 -85 Q1 -82.6 1.4 -80.8 Q-1.6 -79.6 -1.2 -76 Q-3.8 -76.6 -5.6 -80Z', fill: C.hair }, head);
-    el('path', { d: 'M3.6 -84.8 Q4 -81.8 2.8 -80.2', fill: 'none', stroke: '#3B2620', 'stroke-width': 0.9, 'stroke-linecap': 'round' }, head);
-    // cap: crown with panels, button, curved brim
-    el('path', { d: 'M-5.8 -83.4 Q-5.2 -91.2 2 -91.2 Q8.4 -90.8 9.2 -84.2 Q2 -85.6 -5.8 -83.4Z', fill: C.cap }, head);
-    el('path', { d: 'M1.6 -91 Q2.6 -87.6 2.4 -84.8', fill: 'none', stroke: '#B4551F', 'stroke-width': 0.5 }, head);
-    el('circle', { cx: 1.8, cy: -91.2, r: 0.8, fill: '#B4551F' }, head);
-    el('path', { d: 'M7.6 -84.8 Q12.4 -85.6 16 -83.4 Q15.6 -82.4 13.4 -82.4 Q10.4 -82.8 8 -82.8Z', fill: '#B95A2A' }, head);
-    pony.setAttribute('transform', 'translate(-5 -82)');
+    el('path', { d: 'M-5 -80.8 Q-5.4 -87.6 1.2 -88.4 Q7.6 -88.6 8.8 -83.2 L9 -81.2 Q10.8 -78.8 11 -78 Q10.8 -77.3 9.6 -77.2 L9.8 -76.3 Q9.2 -75.8 9.8 -75.3 Q9.2 -74.7 9.4 -73.9 Q8.6 -72.3 5.8 -72.7 Q2.6 -72.9 0.8 -74.1 Q-4.4 -76 -5 -80.8Z' }, head);
+    // hair over the crown and the forehead, falling behind the ear
+    el('path', { d: 'M-5.8 -79.4 Q-7 -87.6 0.4 -89.4 Q7.8 -90.4 9.6 -84.2 Q6 -86.6 2.4 -85.6 Q1 -82.6 1.6 -79.6 Q-1 -77.6 -1.4 -73.4 Q-4.6 -74.6 -5.8 -79.4Z' }, head);
+    hair.setAttribute('transform', 'translate(-3.6 -84)');
 
-    var frontLeg = leg(true);
-    var frontArm = arm(body, true);
-    // trekking pole held in the near hand
+    var frontLeg = leg();
+    var frontArm = arm(body);
     var pole = el('g', {}, frontArm.wrist.g);
-    el('line', { x1: 0, y1: -3, x2: 0, y2: 46, stroke: '#C9CCD8', 'stroke-width': 1.4, 'stroke-linecap': 'round' }, pole);
-    el('rect', { x: -1.3, y: -4, width: 2.6, height: 7, rx: 1, fill: '#2A2A33' }, pole);
-    el('ellipse', { cx: 0, cy: 41.5, rx: 2.6, ry: 0.8, fill: '#2A2A33' }, pole);
-    // draw order: back leg, body (+ back arm), near leg, near arm
-    flip.appendChild(frontLeg.hip.g);
+    el('rect', { x: -0.55, y: -2, width: 1.1, height: 47.5, rx: 0.5 }, pole);
+    el('rect', { x: -1.1, y: -3, width: 2.2, height: 6, rx: 0.9 }, pole);
+    el('ellipse', { cx: 0, cy: 42.5, rx: 2.2, ry: 0.7 }, pole);
+    fig.appendChild(frontLeg.hip.g);
     body.appendChild(frontArm.sh.g);
-    flip.appendChild(body);
+    fig.appendChild(body);
 
     function legPose(L, ph, w, jumpTuck, standHip) {
       var h = lerp(standHip, GAIT.hip(ph), w), k = lerp(4, GAIT.knee(ph), w), a = lerp(0, GAIT.ankle(ph), w);
       h -= jumpTuck * 20; k += jumpTuck * 34;
       setJ(L.hip, h); setJ(L.knee, k);
-      // foot: counter-rotate so it stays near the ground line, plus the ankle roll
       setJ(L.ankle, -(h + k) + a);
-      // height of the sole below the hip (forward kinematics)
       var r = Math.PI / 180;
-      return { h: h, y: THIGH * Math.cos(h * r) + SHIN * Math.cos((h + k) * r) + 5 };
+      return { h: h, y: THIGH * Math.cos(h * r) + SHIN * Math.cos((h + k) * r) + 4 };
     }
 
     return {
@@ -389,26 +335,26 @@
         var tuck = Math.min(1, st.jump / 9) * up;
         var nearL = legPose(frontLeg, ph, w, tuck, -6), farL = legPose(backLeg, ph + 0.5, w, tuck * 0.8, 6);
         var nearH = nearL.h, farH = farL.h;
-        // keep the lower foot on the ground: this also gives the natural bounce of the walk
+        // the lower foot stays on the ground: this also gives the natural bounce of the walk
         var bob = -HIP_Y - Math.max(nearL.y, farL.y);
-        // uphill lean while walking, upright and proud at the top
-        var lean = 11 * w * (1 - up);
-        body.setAttribute('transform', 'rotate(' + n(lean) + ' 0 -44)');
-        // arms swing opposite to the legs; at the summit both go up in a V
-        // summit: near arm in a forward fist-pump, far arm straight up
+        var lean = 7 * w * (1 - up);
+        body.setAttribute('transform', 'rotate(' + n(lean) + ' 0 -45)');
         var nearA = lerp(farH * 0.75 - 6, -122, up);
         var farA = lerp(nearH * 0.75 - 6, -172, up);
-        var nearE = lerp(-28 - 12 * Math.max(0, -Math.sin(ph * 2 * Math.PI)), -26, up);
-        var farE = lerp(-24, -8, up);
+        var nearE = lerp(-26 - 12 * Math.max(0, -Math.sin(ph * 2 * Math.PI)), -26, up);
+        var farE = lerp(-22, -8, up);
         setJ(frontArm.sh, nearA - lean * 0.6); setJ(frontArm.el, nearE);
         setJ(backArm.sh, farA - lean * 0.6); setJ(backArm.el, farE);
         setJ(frontArm.wrist, 0); setJ(backArm.wrist, 0);
-        // pole: tip leads slightly ahead when the arm is forward, planted behind as it swings back
         var poleWorld = 8 + (nearA + 6) * 0.35;
         pole.setAttribute('transform', 'rotate(' + n(poleWorld - (lean + nearA - lean * 0.6 + nearE)) + ')');
         pole.setAttribute('opacity', n(1 - up));
-        // ponytail lags behind the head bob, and bounces at the summit
-        pony.setAttribute('transform', 'translate(-5 -82) rotate(' + n(6 + Math.sin(ph * 4 * Math.PI + 0.8) * 7 * w + up * 12 * Math.sin(st.t * 9)) + ')');
+        // hair streams back with the walk and the wind, and flies at the summit
+        var wind = Math.sin(st.t * 1.7) * 3 + Math.sin(st.t * 4.3) * 1.5;
+        hair.setAttribute('transform', 'translate(-3.6 -84) rotate(' + n(14 + w * 6 + Math.sin(ph * 4 * Math.PI + 0.8) * 5 * w + wind + up * 10 * Math.sin(st.t * 8)) + ')');
+        // rim light always on the sun side (world +x), whichever way she faces
+        rim.setAttribute('transform', 'translate(' + n(1.1 * st.dir) + ' -0.7)');
+        rim2.setAttribute('transform', 'translate(' + n(2 * st.dir) + ' -1.2)');
         flip.setAttribute('transform', 'translate(0 ' + n(bob) + ') scale(' + n(st.dir) + ' 1)');
         root.setAttribute('transform', 'translate(' + n(st.x) + ' ' + n(st.y - st.jump) + ') scale(' + n(st.scale) + ')');
         root.setAttribute('opacity', n(st.o));
