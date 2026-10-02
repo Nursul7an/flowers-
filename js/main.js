@@ -11,8 +11,7 @@
 
   var CONFIG = {
     congrats: {
-      title: 'Вершина покорена!',
-      sub: 'Поздравляю, Дария! 🎉'
+      title: 'Вершина покорена!'
     },
     lead: 'Каждая вершина тебе по силам.',
     dedication: 'А эти цветы\u00A0— для\u00A0тебя,',
@@ -29,7 +28,7 @@
 
     music: {
       src: null,               // e.g. 'assets/music.mp3' (royalty-free); null = built-in music box
-      startWithBouquet: false,
+      autoplay: true,          // music is on from the start (via a «Начать» tap where the browser requires one)
       volume: 0.5
     },
 
@@ -79,8 +78,8 @@
   var stage = $('#stage'), intro = $('#intro'), introText = $('.intro-text');
   var leadEl = $('.lead'), dedicationEl = $('.dedication'), nameEl = $('.name');
   var nameTextEl = $('.name-text'), nameGlowEl = $('.name-glow'), nameShineEl = $('.name-shine');
-  var congrats = $('#congrats'), cTitle = $('.c-title'), cSub = $('.c-sub');
-  var finale = $('#finale'), replayBtn = $('#replay'), soundBtn = $('#sound');
+  var congrats = $('#congrats'), cTitle = $('.c-title');
+  var finale = $('#finale'), replayBtn = $('#replay'), soundBtn = $('#sound'), startBtn = $('#start');
   var wrap = $('#bouquet-wrap'), light = $('.bouquet-light'), veil = $('.veil'), dim = $('.dim');
 
   var particles, world, worldTl, bouquet, bouquetTl, finalTl, music;
@@ -229,12 +228,11 @@
     }, null, at + 0.35);
     tl.set(congrats, { autoAlpha: 1 }, at + 0.4);
     if (reduced) {
-      tl.fromTo([cTitle, cSub], { opacity: 0 }, { opacity: 1, duration: 0.9, stagger: 0.4 }, at + 0.4);
+      tl.fromTo(cTitle, { opacity: 0 }, { opacity: 1, duration: 0.9, stagger: 0.4 }, at + 0.4);
     } else {
       tl.fromTo(titleChars,
         { opacity: 0, y: 40, scale: 0.2, rotation: function () { return (Math.random() - 0.5) * 50; } },
         { opacity: 1, y: 0, scale: 1, rotation: 0, duration: 0.7, ease: 'back.out(2.6)', stagger: 0.045 }, at + 0.4);
-      tl.fromTo(cSub, { opacity: 0, y: 18, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'back.out(1.6)' }, at + 1.6);
     }
   }
 
@@ -350,12 +348,32 @@
   }
 
   /* ── Music ─────────────────────────────────────── */
-  function toggleMusic() {
-    if (!music) music = NS.Music(CONFIG.music);
-    var on = music.toggle();
+  function setSoundIcon(on) {
     soundBtn.textContent = on ? '🔊' : '🔇';
     soundBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
     soundBtn.setAttribute('aria-label', on ? 'Выключить музыку' : 'Включить музыку');
+  }
+
+  function toggleMusic() {
+    music.toggle().then(setSoundIcon);
+  }
+
+  // story + music start together
+  function begin() {
+    gsap.to(veil, { autoAlpha: 0, duration: reduced ? 0.8 : 1.8, ease: 'power1.inOut' });
+    play();
+  }
+
+  // browsers block sound until the first tap: show the scene softly behind a «Начать» button
+  function showStartGate() {
+    gsap.to(veil, { autoAlpha: 0.45, duration: 1.4, ease: 'power1.inOut' });
+    gsap.fromTo(startBtn, { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 1, scale: 1, duration: 0.9, ease: 'back.out(1.8)', delay: 0.4 });
+    startBtn.addEventListener('click', function onStart() {
+      startBtn.removeEventListener('click', onStart);
+      music.start().then(setSoundIcon);
+      gsap.to(startBtn, { autoAlpha: 0, scale: 1.15, duration: 0.45, ease: 'power1.in' });
+      begin();
+    });
   }
 
   /* ── Debug / tooling hook (OG image + static SVG export) ── */
@@ -386,7 +404,6 @@
     chars = splitChars(dedicationEl, CONFIG.dedication);
     nameChars = splitChars(nameTextEl, CONFIG.name);
     titleChars = splitChars(cTitle, CONFIG.congrats.title);
-    cSub.textContent = CONFIG.congrats.sub;
 
     particles = NS.Particles($('#sky'), { reduced: reduced });
     world = NS.buildWorld($('#world'), { climbDuration: CONFIG.timing.climb });
@@ -427,8 +444,15 @@
       return;
     }
 
-    gsap.to(veil, { autoAlpha: 0, duration: reduced ? 0.8 : 1.8, ease: 'power1.inOut' });
-    fontsReady(CONFIG.timing.fontTimeout).then(play);
+    music = NS.Music(CONFIG.music);
+    Promise.all([
+      fontsReady(CONFIG.timing.fontTimeout),
+      CONFIG.music.autoplay ? music.start() : Promise.resolve(false)
+    ]).then(function (r) {
+      setSoundIcon(r[1]);
+      if (r[1] || !CONFIG.music.autoplay) begin();
+      else showStartGate();
+    });
   }
 
   try {

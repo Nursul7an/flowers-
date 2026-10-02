@@ -52,9 +52,30 @@
       o.stop(time + len + 0.05); o2.stop(time + len + 0.05);
     }
 
+    // warm sustained pad under each chord
+    function pad(m, time, len) {
+      [-4, 4].forEach(function (cents) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.value = freq(m);
+        o.detune.value = cents;
+        o.connect(g); g.connect(master);
+        g.gain.setValueAtTime(0.0001, time);
+        g.gain.linearRampToValueAtTime(0.026, time + 0.9);
+        g.gain.setValueAtTime(0.026, time + len - 0.6);
+        g.gain.linearRampToValueAtTime(0.0001, time + len + 0.4);
+        o.start(time); o.stop(time + len + 0.5);
+      });
+    }
+
     function schedule() {
       while (nextTime < ctx.currentTime + 0.25) {
         var chord = CHORDS[Math.floor(stepIdx / 8) % CHORDS.length];
+        if (stepIdx % 8 === 0) {
+          pad(chord[0] - 12, nextTime, BEAT * 8);
+          pad(chord[1], nextTime, BEAT * 8);
+          pad(chord[2], nextTime, BEAT * 8);
+        }
         note(chord[stepIdx % 8], nextTime, 0.12, 1.6);
         var mel = MELODY[stepIdx % MELODY.length];
         if (mel && Math.floor(stepIdx / 16) % 2 === 1) note(mel, nextTime, 0.09, 2.2);
@@ -66,6 +87,7 @@
     function playSynth() {
       if (!ctx && !setupSynth()) return false;
       if (ctx.state === 'suspended') ctx.resume();
+      stepIdx = 0;
       nextTime = ctx.currentTime + 0.08;
       clearInterval(timer);
       timer = setInterval(schedule, 90);
@@ -107,19 +129,43 @@
       }
     });
 
+    function wait(ms) { return new Promise(function (res) { setTimeout(res, ms); }); }
+
+    // Resolves true when sound is actually playing. Without a user gesture
+    // browsers keep audio blocked; then this resolves false and the caller
+    // should try again from a tap.
+    function start() {
+      if (playing) return Promise.resolve(true);
+      if (cfg.src) {
+        if (!audio) { audio = new Audio(cfg.src); audio.loop = true; audio.preload = 'auto'; }
+        audio.volume = cfg.volume || 0.5;
+        return Promise.resolve(audio.play()).then(function () { playing = true; return true; })
+          .catch(function () { return false; });
+      }
+      if (!ctx && !setupSynth()) return Promise.resolve(false);
+      var resumed = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
+      // a blocked resume() never settles, so don't wait for it forever
+      return Promise.race([resumed, wait(350)]).then(function () {
+        if (ctx.state !== 'running') return false;
+        playing = true;
+        playSynth();
+        return true;
+      }).catch(function () { return false; });
+    }
+
+    function stop() {
+      if (!playing) return;
+      playing = false;
+      if (cfg.src) { if (audio) audio.pause(); } else stopSynth();
+    }
+
     return {
       get playing() { return playing; },
+      start: start,
+      stop: stop,
       toggle: function () {
-        playing = !playing;
-        if (playing) {
-          var ok = cfg.src ? playFile() : playSynth();
-          if (!ok) playing = false;
-        } else if (cfg.src) {
-          if (audio) audio.pause();
-        } else {
-          stopSynth();
-        }
-        return playing;
+        if (playing) { stop(); return Promise.resolve(false); }
+        return start();
       }
     };
   };

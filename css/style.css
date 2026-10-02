@@ -109,12 +109,35 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-.c-sub {
-  margin-top: 0.6rem;
-  font-family: var(--script);
-  font-size: clamp(1.5rem, min(8vw, 8.5vh), 3rem);
-  color: #FFF1F6;
-  text-shadow: 0 0 18px rgba(255, 140, 190, 0.9), 0 2px 3px rgba(40, 10, 40, 0.6);
+/* ── Start button (needed for sound on phones) ── */
+.start {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 7;
+  width: 132px;
+  height: 132px;
+  margin: -66px 0 0 -66px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: #4A2240;
+  background: radial-gradient(circle at 40% 35%, #FFF4DE, #FFD9A0 55%, #F5B6A2);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5) inset, 0 0 40px rgba(255, 217, 160, 0.7), 0 0 110px rgba(247, 160, 190, 0.55);
+  visibility: hidden;
+  opacity: 0;
+  animation: pulse 2.4s ease-in-out infinite;
+}
+.start-ico { font-size: 2.4rem; line-height: 1; }
+.start-label { font-family: var(--serif); font-size: 1.25rem; font-weight: 500; letter-spacing: 0.03em; }
+.start:focus-visible { outline: 2px solid var(--gold); outline-offset: 6px; }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5) inset, 0 0 40px rgba(255, 217, 160, 0.7), 0 0 110px rgba(247, 160, 190, 0.55); }
+  50% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5) inset, 0 0 60px rgba(255, 217, 160, 0.95), 0 0 160px rgba(247, 160, 190, 0.8); }
 }
 
 /* ── Bouquet ──────────────────────────────────── */
@@ -289,6 +312,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* No JS: static text + static bouquet */
 html:not(.js) #stage { flex-direction: column; justify-content: flex-start; padding-top: 6vh; }
 html:not(.js) #congrats,
+html:not(.js) .start,
 html:not(.js) .name-shine,
 html:not(.js) .sound,
 html:not(.js) .veil,
@@ -313,6 +337,7 @@ html:not(.js) .name { font-size: clamp(2.8rem, 13vw, 4.6rem); }
 .fallback .char,
 .fallback .sw { opacity: 1 !important; transform: none !important; }
 .fallback #congrats,
+.fallback .start,
 .fallback #world,
 .fallback .name-shine,
 .fallback .veil,
@@ -326,5 +351,6 @@ html:not(.js) .name { font-size: clamp(2.8rem, 13vw, 4.6rem); }
 
 @media (prefers-reduced-motion: reduce) {
   .name-shine.on,
+  .start,
   #bouquet-wrap.swaying svg { animation: none; }
 }
