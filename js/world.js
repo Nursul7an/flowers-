@@ -74,34 +74,139 @@
     return g;
   }
 
+  /* ── Sakura ─────────────────────────────────────────────────────────
+   * A recursive, tapering branch skeleton; blossom clusters sit at the branch
+   * tips as many small blooms in four tones (shadow → body → light →
+   * highlight), lit from the upper side, plus tiny five-petal flowers on the
+   * edges. Everything is merged into a few path elements per tree. */
+  function circ(cx, cy, r) {
+    return 'M' + n(cx - r) + ' ' + n(cy) + 'a' + n(r) + ' ' + n(r) + ' 0 1 0 ' + n(2 * r) + ' 0a' + n(r) + ' ' + n(r) + ' 0 1 0 ' + n(-2 * r) + ' 0';
+  }
+
   function cherryTree(parent, x, y, scale, flip, rnd) {
     var g = el('g', { transform: 'translate(' + x + ' ' + y + ') scale(' + (flip ? -scale : scale) + ' ' + scale + ')' }, parent);
-    el('path', {
-      d: 'M-16 0 C-10 -60 -22 -120 -6 -170 C10 -220 50 -250 110 -290 L116 -282 C64 -240 30 -205 18 -170 C40 -190 80 -196 120 -190 L118 -180 C84 -180 48 -170 24 -146 C16 -100 22 -50 18 0 Z',
-      fill: '#3A2431'
-    }, g);
-    el('path', { d: 'M-8 -150 C-40 -190 -70 -205 -110 -215 L-108 -206 C-74 -196 -44 -180 -14 -140 Z', fill: '#3A2431' }, g);
-    var centres = [[110, -290], [120, -190], [-110, -212], [40, -250], [-40, -200], [70, -320], [0, -280], [150, -240], [-70, -260], [20, -200], [90, -230], [-20, -320], [160, -300]];
-    // blossom clouds as three tonal layers (shadow, body, light) + tiny flower speckles:
-    // a handful of path elements instead of hundreds of circles
-    function circ(cx, cy, r) {
-      return 'M' + n(cx - r) + ' ' + n(cy) + 'a' + n(r) + ' ' + n(r) + ' 0 1 0 ' + n(2 * r) + ' 0a' + n(r) + ' ' + n(r) + ' 0 1 0 ' + n(-2 * r) + ' 0';
+    var wood = ['', '', '', '', ''];     // branch paths by thickness level
+    var tips = [];
+
+    // tapered, slightly curved limb drawn as a filled quad strip
+    function limb(x0, y0, x1, y1, w0, w1, bend) {
+      var dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1;
+      var nx = -dy / L, ny = dx / L;
+      var mx = (x0 + x1) / 2 + nx * bend, my = (y0 + y1) / 2 + ny * bend;
+      return 'M' + n(x0 + nx * w0 / 2) + ' ' + n(y0 + ny * w0 / 2) +
+        ' Q' + n(mx + nx * (w0 + w1) / 4) + ' ' + n(my + ny * (w0 + w1) / 4) + ' ' + n(x1 + nx * w1 / 2) + ' ' + n(y1 + ny * w1 / 2) +
+        ' L' + n(x1 - nx * w1 / 2) + ' ' + n(y1 - ny * w1 / 2) +
+        ' Q' + n(mx - nx * (w0 + w1) / 4) + ' ' + n(my - ny * (w0 + w1) / 4) + ' ' + n(x0 - nx * w0 / 2) + ' ' + n(y0 - ny * w0 / 2) + 'Z';
     }
-    var dark = '', mid = '', lite = '', dots = '';
-    centres.forEach(function (c) {
-      for (var k = 0; k < 7; k++) {
-        var x = c[0] + (rnd() - 0.5) * 80, y = c[1] + (rnd() - 0.5) * 56, r = 14 + rnd() * 22;
-        dark += circ(x + 4, y + 6, r);
-        mid += circ(x, y, r * 0.9);
-        lite += circ(x - r * 0.25, y - r * 0.3, r * 0.5);
+    function grow(x0, y0, ang, len, w, depth) {
+      var a = ang * Math.PI / 180;
+      var x1 = x0 + Math.cos(a) * len, y1 = y0 + Math.sin(a) * len;
+      var w1 = w * 0.66;
+      wood[Math.min(depth, 4)] += limb(x0, y0, x1, y1, w, w1, (rnd() - 0.5) * len * 0.25);
+      if (depth >= 2) tips.push({ x: x1, y: y1, s: depth >= 3 ? 1 : 1.25 });
+      if (depth >= 4) return;
+      var kids = depth === 0 ? 3 : 2 + (rnd() < 0.45 ? 1 : 0);
+      for (var k = 0; k < kids; k++) {
+        // umbrella habit: limbs spread sideways, then arch up and out
+        var spread = depth === 0 ? (k - 1) * 42 : (k / Math.max(1, kids - 1) - 0.5) * 80;
+        var na = ang + spread + (rnd() - 0.5) * 22;
+        na = Math.max(-170, Math.min(-10, na));
+        grow(x1, y1, na, len * (0.68 + rnd() * 0.14), w1, depth + 1);
       }
-      for (k = 0; k < 9; k++) dots += circ(c[0] + (rnd() - 0.5) * 100, c[1] + (rnd() - 0.5) * 70, 1.6 + rnd() * 2.2);
+    }
+    grow(0, 0, -90 + (rnd() - 0.5) * 8, 120, 30, 0);
+
+    // blossom clusters
+    var shade = '', body = '', lite = '', glow = '', flowers = '', eyes = '';
+    tips.forEach(function (t) {
+      var cr = (34 + rnd() * 22) * t.s;
+      var count = Math.round(16 + cr * 0.32);
+      for (var i = 0; i < count; i++) {
+        var a = rnd() * Math.PI * 2, d = Math.sqrt(rnd());
+        var px = t.x + Math.cos(a) * d * cr * 1.25;
+        var py = t.y + Math.sin(a) * d * cr * 0.8 + d * cr * 0.18; // droop
+        var r = 5 + rnd() * 9 * (1 - d * 0.4);
+        // light from the upper side: tone by position inside the cluster
+        var lit = -Math.sin(a) * d * 0.8 - Math.cos(a) * d * 0.3 + (rnd() - 0.5) * 0.6;
+        shade += circ(px + 2, py + 3, r);
+        if (lit > -0.35) body += circ(px, py, r * 0.92);
+        if (lit > 0.15) lite += circ(px - r * 0.2, py - r * 0.25, r * 0.6);
+        if (lit > 0.55) glow += circ(px - r * 0.3, py - r * 0.35, r * 0.3);
+      }
+      // individual five-petal flowers on the rim of the cluster
+      for (i = 0; i < 4; i++) {
+        var fa = rnd() * Math.PI * 2, fd = 0.75 + rnd() * 0.35;
+        var fx = t.x + Math.cos(fa) * fd * cr * 1.2, fy = t.y + Math.sin(fa) * fd * cr * 0.8 + cr * 0.12;
+        var fs = 3.2 + rnd() * 2.6, rot = rnd() * 72;
+        for (var p = 0; p < 5; p++) {
+          var pa = (rot + p * 72) * Math.PI / 180;
+          flowers += circ(fx + Math.cos(pa) * fs * 0.62, fy + Math.sin(pa) * fs * 0.62, fs * 0.5);
+        }
+        eyes += circ(fx, fy, fs * 0.22);
+      }
     });
-    el('path', { d: dark, fill: '#C8609A' }, g);
-    el('path', { d: mid, fill: '#F29CC4' }, g);
-    el('path', { d: lite, fill: '#FFC9E0', opacity: 0.9 }, g);
-    el('path', { d: dots, fill: '#FFF2F8' }, g);
+
+    var woodCol = ['#2E1B27', '#33202C', '#3A2532', '#432B39', '#4C3140'];
+    var layers = [[shade, '#B9578C', 1]];
+    for (var lv = 0; lv < wood.length; lv++) if (wood[lv]) layers.push([wood[lv], woodCol[lv], 1]);
+    layers.push([body, '#EC93BE', 1], [lite, '#F8BFD8', 1], [glow, '#FFE3EF', 1], [flowers, '#FFE4F0', 0.92], [eyes, '#E27AA6', 1]);
+    layers.forEach(function (L) { el('path', { d: L[0], fill: L[1], opacity: L[2] }, g); });
+    bakeTree(g, layers, tips, scale);
     return g;
+  }
+
+  /* The trees never change, but the camera moves every frame: re-painting
+   * thousands of tiny blossom shapes is expensive, so each tree is drawn once
+   * into a bitmap (sharp enough for the widest shot on this screen) and the
+   * vector version is swapped for an <image>. If anything fails, the vector
+   * version simply stays. */
+  // bake one tree at a time, shortly after start-up
+  var bakeQueue = [];
+  function runBakeQueue() {
+    var job = bakeQueue.shift();
+    if (job) { job(); setTimeout(runBakeQueue, 60); }
+  }
+
+  function bakeTree(g, layers, tips, scale) {
+    var minX = -40, maxX = 40, minY = -40, maxY = 10;
+    tips.forEach(function (t) {
+      minX = Math.min(minX, t.x - 110); maxX = Math.max(maxX, t.x + 110);
+      minY = Math.min(minY, t.y - 90); maxY = Math.max(maxY, t.y + 110);
+    });
+    var w = maxX - minX, h = maxY - minY;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    var ppu = Math.min(2.5, Math.min(window.innerWidth, window.innerHeight) / 880 * dpr * scale * 1.2);
+    ppu = Math.max(0.8, ppu);
+    var markup = '<svg xmlns="' + SVGNS + '" viewBox="' + n(minX) + ' ' + n(minY) + ' ' + n(w) + ' ' + n(h) + '" width="' + Math.round(w * ppu) + '" height="' + Math.round(h * ppu) + '">' +
+      layers.map(function (L) { return '<path d="' + L[0] + '" fill="' + L[1] + '" opacity="' + L[2] + '"/>'; }).join('') + '</svg>';
+    bakeQueue.push(function () {
+      try {
+        var url = URL.createObjectURL(new Blob([markup], { type: 'image/svg+xml' }));
+        var img = new Image();
+        img.onload = function () {
+          try {
+            var c = document.createElement('canvas');
+            c.width = Math.round(w * ppu); c.height = Math.round(h * ppu);
+            c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+            URL.revokeObjectURL(url);
+            c.toBlob(function (blob) {
+              if (!blob) return;
+              var bmp = URL.createObjectURL(blob);
+              var im = el('image', { x: n(minX), y: n(minY), width: n(w), height: n(h), preserveAspectRatio: 'none' });
+              im.setAttribute('href', bmp);
+              im.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', bmp);
+              var probe = new Image();
+              probe.onload = function () {
+                while (g.firstChild) g.removeChild(g.firstChild);
+                g.appendChild(im);
+              };
+              probe.src = bmp;
+            }, 'image/png');
+          } catch (e) { /* keep vectors */ }
+        };
+        img.src = url;
+      } catch (e) { /* keep vectors */ }
+    });
   }
 
   /* ── The hiker (side view, facing +x) ─────────────────────────────── */
@@ -337,10 +442,10 @@
       reedD += 'M' + n(rx) + ' 1300 Q' + n(rx + lean * 0.4) + ' ' + n(1300 - rh * 0.6) + ' ' + n(rx + lean) + ' ' + n(1300 - rh) + ' ';
     }
     el('path', { d: reedD, fill: 'none', stroke: '#2C1E35', 'stroke-width': 3, 'stroke-linecap': 'round' }, cam);
-    cherryTree(cam, 20, 1310, 1.6, false, rnd);
-    cherryTree(cam, 990, 1320, 1.5, true, rnd);
-    cherryTree(cam, -330, 1300, 1.7, false, rnd);
-    cherryTree(cam, 1330, 1305, 1.7, true, rnd);
+    cherryTree(cam, -330, 1300, 1.5, false, rnd);
+    cherryTree(cam, 1330, 1305, 1.5, true, rnd);
+    cherryTree(cam, 40, 1310, 1.35, false, rnd);
+    cherryTree(cam, 960, 1320, 1.3, true, rnd);
 
     /* ── state ─────────────────────────────────────── */
     var W = 1, H = 1;
@@ -404,6 +509,7 @@
 
     resize();
     window.addEventListener('resize', resize);
+    setTimeout(runBakeQueue, 50);
     gsap.ticker.add(update);
     update();
     svg.style.visibility = '';

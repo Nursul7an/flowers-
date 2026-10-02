@@ -259,6 +259,7 @@
     tl.to(light, { opacity: 1, duration: 2.6, ease: 'power1.inOut' }, at + 0.8);
     tl.add(function () {
       flowersShown = true;
+      wrap.style.display = '';
       wrap.classList.remove('swaying');
       bouquetTl.eventCallback('onComplete', onBloomed);
       bouquetTl.restart();
@@ -293,7 +294,6 @@
 
   function resetStory() {
     flowersShown = false;
-    particles.setAmbient(false);
     finalTl.pause(0);
     bouquetTl.pause(0);
     renderOnce = true;
@@ -304,6 +304,7 @@
     gsap.set(congrats, { autoAlpha: 0, y: 0 });
     gsap.set(finale, { autoAlpha: 0 });
     gsap.set(bouquet.svg, { visibility: 'hidden' });
+    wrap.style.display = 'none'; // keep the 1 300-node bouquet out of rendering until it is needed
   }
 
   function play() {
@@ -341,6 +342,7 @@
 
   // story + music start together
   function begin() {
+    particles.setAmbient(true); // sakura petals drift through the whole story
     gsap.to(veil, { autoAlpha: 0, duration: reduced ? 0.8 : 1.8, ease: 'power1.inOut' });
     play();
   }
@@ -368,6 +370,7 @@
     gsap.set([dim, light], { opacity: 1 });
     finalTl.progress(1);
     nameShineEl.classList.add('on');
+    wrap.style.display = '';
     bouquetTl.progress(1);
     bouquet.renderAll();
     flowersShown = true;
