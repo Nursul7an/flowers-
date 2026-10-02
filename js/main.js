@@ -27,47 +27,28 @@
     },
 
     music: {
-      src: null,               // e.g. 'assets/music.mp3' (royalty-free); null = built-in music box
+      src: 'assets/music.mp3', // Pachelbel — Canon in D on a real grand piano (see tools/music); null = built-in music box
       autoplay: true,          // music is on from the start (via a «Начать» tap where the browser requires one)
-      volume: 0.5
+      volume: 0.8
     },
 
     bouquet: {
-      seed: 11,
-      flowerCount: 10,
-      bloomGap: 0.24,
-      // light rim → mid → deep base; shade = colour of the crevices
+      seed: 21,
+      count: 66,        // cupped blooms in the dome (gaps are filled with small buds)
+      size: 25,         // bloom radius in the middle of the dome
+      buds: 0.08,
+      leaves: 16,
+      // colours taken from real Sarah Bernhardt peony bouquets
       palettes: [
-        { light: '#FBD0E2', mid: '#F08DB9', deep: '#D24E91', shade: '#8E2A62' }, // ярко-розовый
-        { light: '#FDE2EB', mid: '#F5B0C8', deep: '#E07CA3', shade: '#9E4670' }, // розовый
-        { light: '#FFF2F5', mid: '#FAD3DF', deep: '#EFA9BF', shade: '#B47388' }, // нежный
-        { light: '#FFFDF8', mid: '#FAEEE8', deep: '#EBCFCF', shade: '#A88C90' }, // кремово-белый
-        { light: '#F8D8EC', mid: '#ECA4D0', deep: '#CF6DAE', shade: '#8C3B78' }  // сиренево-розовый
+        { light: '#F6A4CB', mid: '#DE4F98', deep: '#A42066', rim: '#FFC4E0', crease: '#6E1046' }, // magenta
+        { light: '#FBBAD6', mid: '#EE7DB3', deep: '#C2407F', rim: '#FFD8EA', crease: '#8C2458' }, // hot pink
+        { light: '#FDE2EC', mid: '#F5B6CD', deep: '#D884A6', rim: '#FFF2F7', crease: '#A8577A' }, // soft pink
+        { light: '#FFF7FA', mid: '#F9DDE7', deep: '#E6AEC3', rim: '#FFFFFF', crease: '#B9778F' }, // blush
+        { light: '#FFFFFF', mid: '#F8F0F2', deep: '#DCC2CB', rim: '#FFFFFF', crease: '#A88893' }, // white
+        { light: '#FFF4F7', mid: '#F2C9D8', deep: '#C98AA4', rim: '#FFFFFF', crease: '#9A5C76' }  // bud
       ],
-      // viewBox x −10…410, y 80…560; x, y = centre of the head, r = radius
-      flowers: [
-        { x: 135, y: 185, r: 56, palette: 1, tilt: -10 },
-        { x: 205, y: 165, r: 60, palette: 0, tilt: 4 },
-        { x: 275, y: 188, r: 56, palette: 4, tilt: 12 },
-        { x: 80, y: 252, r: 54, palette: 2, tilt: -18 },
-        { x: 160, y: 240, r: 62, palette: 3, tilt: -6 },
-        { x: 245, y: 236, r: 62, palette: 0, tilt: 8 },
-        { x: 325, y: 254, r: 54, palette: 1, tilt: 18 },
-        { x: 118, y: 312, r: 58, palette: 0, tilt: -10 },
-        { x: 200, y: 305, r: 64, palette: 1, tilt: 0 },
-        { x: 284, y: 314, r: 58, palette: 2, tilt: 10 }
-      ],
-      bloomOrder: [8, 4, 5, 1, 0, 2, 7, 9, 3, 6],
-      buds: [
-        { x: 44, y: 196, r: 11, tilt: -24, palette: 0 },
-        { x: 362, y: 192, r: 11, tilt: 22, palette: 4 }
-      ],
-      // leaves peeking between the flowers and the paper: [x, y, angle, length, compound]
-      leaves: [
-        [34, 322, -72, 70, true], [368, 324, 72, 70, true],
-        [70, 206, -46, 56, false], [336, 202, 46, 56, false],
-        [165, 132, -24, 46, false], [248, 132, 26, 46, false]
-      ]
+      mix: [0.3, 0.26, 0.24, 0.1, 0.1, 0],
+      budPalette: 5
     }
   };
 

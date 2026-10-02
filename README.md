@@ -19,7 +19,9 @@
 | `js/world.js` | Фудзияма, сакура, озеро, девушка-хайкер (анимация шага), флаг, виртуальная камера |
 | `js/peony.js` | SVG-пион «бомба» (наружные лепестки + купол из волнистых чашевидных лепестков), упаковочная бумага, листья, лента, таймлайн распускания |
 | `js/particles.js` | Canvas 2D: огоньки, лепестки, тап-взрыв, салют (пион, ива, сердце), конфетти; пулы частиц и адаптивное качество |
-| `js/music.js` | мелодия «музыкальной шкатулки» на Web Audio (0 KB), или свой `.mp3` |
+| `js/music.js` | воспроизведение музыки (по умолчанию `assets/music.mp3`), запасной вариант — «музыкальная шкатулка» на Web Audio |
+| `assets/music.mp3` | Пахельбель — «Канон ре мажор» на настоящем рояле (~2 мин, 1,7 МБ), см. `tools/music/` |
+| `tools/music/` | аранжировка (`canon.mjs`) и рендер на сэмплах рояля в mp3 (`render.mjs`) |
 | `js/vendor/gsap.min.js` | GSAP 3.15 (бесплатная Standard License) — локальная копия, без CDN |
 | `assets/og.jpg` | превью 1200×630 для Telegram / WhatsApp |
 | `assets/bouquet.svg` | статичный букет для режима без JS / при ошибке |
@@ -37,7 +39,7 @@ npx http-server -p 8080 .
 
 ## Как поменять текст / цвета
 
-Всё в объекте `CONFIG` в начале `js/main.js`: `congrats` (надписи на вершине), `lead`, `dedication`, `name`, `replay`, `summitHeight`, тайминги (`timing.climb` — длительность подъёма), палитры пионов, позиции цветов. Свой трек: положите `assets/music.mp3` (royalty-free) и укажите `music.src: 'assets/music.mp3'`. Чтобы музыка включалась вместе с букетом — `music.startWithBouquet: true`.
+Всё в объекте `CONFIG` в начале `js/main.js`: `congrats` (надписи на вершине), `lead`, `dedication`, `name`, `replay`, `summitHeight`, тайминги (`timing.climb` — длительность подъёма), палитры пионов, позиции цветов. Музыка: `assets/music.mp3` (`music.src`). Чтобы заменить трек — положите свой mp3 на его место. Чтобы музыка включалась вместе с букетом — `music.startWithBouquet: true`.
 
 После изменения цветов перегенерируйте превью и fallback:
 
@@ -64,3 +66,9 @@ node tools/render-assets.mjs
 ## Открытые вопросы из ТЗ
 
 Формулировка посвящения, цвет пионов, трек и домен — сейчас стоят значения по умолчанию из ТЗ, меняются в `CONFIG`.
+
+## Музыка и права
+
+- **Композиция:** Иоганн Пахельбель, «Канон ре мажор» — общественное достояние. Аранжировка для фортепиано — в `tools/music/canon.mjs`.
+- **Звук рояля:** Salamander Grand Piano V3, автор Alexander Holm, лицензия [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) (сэмплы из npm-пакетов `@audio-samples/piano-mp3-velocity*`).
+- Перегенерировать трек: `npm i --no-save playwright lamejs @audio-samples/piano-mp3-velocity5 @audio-samples/piano-mp3-velocity8 @audio-samples/piano-mp3-velocity12 && node tools/music/render.mjs`.

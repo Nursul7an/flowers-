@@ -14,8 +14,8 @@ const browser = await chromium.launch();
   const svg = await page.evaluate(() => {
     const s = window.Flowers.debug.bouquet.svg.cloneNode(true);
     s.removeAttribute('style');
-    s.setAttribute('width', '420');
-    s.setAttribute('height', '480');
+    s.setAttribute('width', '440');
+    s.setAttribute('height', '590');
     return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(s);
   });
   writeFileSync('assets/bouquet.svg', svg);
@@ -41,7 +41,7 @@ const browser = await chromium.launch();
   await page.evaluate(() => {
     const { particles } = window.Flowers.debug;
     const wrap = document.querySelector('#bouquet-wrap');
-    wrap.style.left = '74%'; wrap.style.height = '610px'; wrap.style.width = (610 * 420 / 480) + 'px';
+    wrap.style.left = '74%'; wrap.style.height = '610px'; wrap.style.width = (610 * 440 / 590) + 'px';
     wrap.style.bottom = '-4px';
     const t = document.createElement('div');
     t.className = 'og-title';
