@@ -27,6 +27,9 @@ const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, ignoreHTTPSErrors: true });
   await page.goto(BASE + '?poster');
   await page.evaluate(() => document.fonts.load('48px "Marck Script"', 'Дария'));
+  // Google Fonts can fail silently; never bake a preview with a fallback font
+  const loaded = await page.evaluate(() => [...document.fonts].some(f => f.family.includes('Marck') && f.status === 'loaded'));
+  if (!loaded) throw new Error('script font not loaded — run again');
   await page.waitForFunction(() => document.fonts.check('48px "Marck Script"', 'Дария'), null, { timeout: 15000 });
   await page.addStyleTag({ content: `
     #sound, #intro, #finale, #congrats { display: none !important; }

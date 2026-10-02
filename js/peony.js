@@ -5,8 +5,9 @@
  * few tight buds packed into a round dome, framed by layered pink paper and
  * long satin ribbons.
  *
- * Each bloom is a cup of ruffled petals (outer ring, inner cup, heart) over a
- * dark body; gradients are shared per colour, so the dome stays light on phones.
+ * Each bloom: contact shadow, shaded ball, far petals, a crumpled crown of
+ * ruffled edges with creases, broad guard petals cupping it, and globe
+ * lighting. Gradients are shared per colour, so the dome stays light on phones.
  *
  * Every animated SVG node is wrapped in a Part. GSAP tweens the Part's plain
  * numeric fields; Part.render() writes them back as a single `transform`
@@ -96,9 +97,12 @@
       // cupped petal: light ruffled rim → deep base (the bloom's centre)
       stops(el('linearGradient', { id: 'pet' + i, x1: '0', y1: '0', x2: '0', y2: '1' }, defs),
         [['0', p.light], ['0.45', p.mid], ['1', p.deep]]);
-      // the half-open centre
-      stops(el('radialGradient', { id: 'eye' + i, cx: '0.5', cy: '0.6', r: '0.6' }, defs),
-        [['0', p.crease], ['0.7', p.deep], ['1', p.mid, 0]]);
+      // far petals sit in shadow
+      stops(el('linearGradient', { id: 'petb' + i, x1: '0', y1: '0', x2: '0', y2: '1' }, defs),
+        [['0', p.mid], ['1', p.deep]]);
+      // the crown: deep between the ruffles
+      stops(el('radialGradient', { id: 'core' + i, cx: '0.45', cy: '0.4', r: '0.6' }, defs),
+        [['0', p.mid], ['0.65', p.deep], ['1', p.crease]]);
     });
     stops(el('linearGradient', { id: 'leafg', x1: '0', y1: '0', x2: '1', y2: '0' }, defs),
       [['0', '#6A9872'], ['0.5', '#4F7A5A'], ['1', '#2F5640']]);
@@ -110,11 +114,15 @@
       [['0', '#F2B8CE'], ['0.4', '#FDE6EE'], ['0.75', '#F9D3E1'], ['1', '#EFA9C4']]);
     stops(el('linearGradient', { id: 'ribg', x1: '0', y1: '0', x2: '1', y2: '0' }, defs),
       [['0', '#F6D9E4'], ['0.45', '#FFFFFF'], ['1', '#EFC6D6']]);
+    stops(el('radialGradient', { id: 'glight', cx: '0.32', cy: '0.26', r: '0.82' }, defs),
+      [['0', '#FFF4F8', 0.16], ['0.45', '#FFFFFF', 0], ['0.66', '#3A0A26', 0], ['0.92', '#3A0A26', 0.24], ['1', '#3A0A26', 0.12]]);
+    stops(el('radialGradient', { id: 'bshadow' }, defs),
+      [['0.55', '#2E0820', 0.5], ['1', '#2E0820', 0]]);
     // darkens the dome's rim so it reads as a ball
     stops(el('radialGradient', { id: 'domeShade', cx: '0.5', cy: '0.42', r: '0.55' }, defs),
       [['0.72', '#4A0F2E', 0], ['1', '#4A0F2E', 0.22]]);
     stops(el('radialGradient', { id: 'domeShadow' }, defs),
-      [['0', '#6A1544', 1], ['0.93', '#5A1238', 1], ['1', '#5A1238', 0]]);
+      [['0', '#8A2160', 1], ['0.93', '#6E1A4C', 1], ['1', '#6E1A4C', 0]]);
   }
 
   /* ── One cupped peony ─────────────────────────────── */
@@ -130,38 +138,87 @@
       ' C' + n(0.6 * hw) + ' ' + n(0.42 * h) + ' ' + n(-0.6 * hw) + ' ' + n(0.42 * h) + ' ' + n(-hw) + ' 0Z';
   }
 
+  // crumpled petal edge: a thin, wavy crescent around (cx, cy)
+  function ruffle(cx, cy, rr, a0, a1, t, rnd) {
+    var N = 10, waves = 1 + Math.floor(rnd() * 2), ph = rnd() * 6.28, out = [], inn = [];
+    for (var k = 0; k <= N; k++) {
+      var u = k / N, a = (a0 + (a1 - a0) * u) * Math.PI / 180;
+      var wob = Math.sin(u * Math.PI * waves + ph) * rr * 0.045;
+      var thick = t * Math.sin(u * Math.PI);
+      out.push(n(cx + Math.cos(a) * (rr + wob)) + ' ' + n(cy + Math.sin(a) * (rr + wob)));
+      inn.push(n(cx + Math.cos(a) * (rr + wob - thick)) + ' ' + n(cy + Math.sin(a) * (rr + wob - thick)));
+    }
+    return 'M' + out.join(' L') + ' L' + inn.reverse().join(' L') + 'Z';
+  }
+
+  // lumpy, petal-scalloped outline of a bloom (radius r)
+  function blobPath(r, rnd, lobes) {
+    var N = lobes * 3, pts = [], ph = rnd() * 6.28;
+    for (var k = 0; k < N; k++) {
+      var a = (k / N) * Math.PI * 2;
+      var rr = r * (1 + 0.055 * Math.cos(a * lobes + ph) + (rnd() - 0.5) * 0.03);
+      pts.push([Math.cos(a) * rr, Math.sin(a) * rr]);
+    }
+    var d = '';
+    for (k = 0; k < N; k++) {
+      var p0 = pts[(k - 1 + N) % N], p1 = pts[k], p2 = pts[(k + 1) % N], p3 = pts[(k + 2) % N];
+      if (!k) d = 'M' + n(p1[0]) + ' ' + n(p1[1]);
+      d += ' C' + n(p1[0] + (p2[0] - p0[0]) / 6) + ' ' + n(p1[1] + (p2[1] - p0[1]) / 6) + ' ' +
+        n(p2[0] - (p3[0] - p1[0]) / 6) + ' ' + n(p2[1] - (p3[1] - p1[1]) / 6) + ' ' + n(p2[0]) + ' ' + n(p2[1]);
+    }
+    return d + 'Z';
+  }
+
   function buildBloom(layer, b, rnd, pal) {
     var g = el('g', {}, layer);
-    var r = b.r;
-    var inner = el('g', { transform: 'rotate(' + n((rnd() - 0.5) * 50) + ')' }, g);
-    var fill = 'url(#pet' + b.palette + ')';
-    var stroke = { stroke: pal.rim, 'stroke-opacity': 0.75, 'stroke-width': n(Math.max(0.5, r * 0.035)) };
-    // dark body: what shows between the petals
-    el('circle', { r: n(r * 0.92), fill: 'url(#ball' + b.palette + ')' }, inner);
+    var r = b.r, P = b.palette;
+    // soft contact shadow cast on the blooms below/behind
+    el('circle', { cx: n(r * 0.12), cy: n(r * 0.2), r: n(r * 1.04), fill: 'url(#bshadow)' }, g);
+    var inner = el('g', { transform: 'rotate(' + n((rnd() - 0.5) * 30) + ')' }, g);
+    var outline = blobPath(r * 0.96, rnd, b.bud ? 4 : 7);
+    el('path', { d: outline, fill: 'url(#ball' + P + ')' }, inner);
     var open = el('g', {}, inner);
-    // ring of outer petals, rims facing outwards; the far (top) ones first
-    var outer = b.bud ? 3 : 6, angs = [];
-    var off = rnd() * 360;
-    for (var i = 0; i < outer; i++) angs.push(off + i * 360 / outer + (rnd() - 0.5) * 18);
-    angs.sort(function (p, q) { return Math.sin(p * Math.PI / 180) - Math.sin(q * Math.PI / 180); });
-    angs.forEach(function (a) {
-      var w = r * (b.bud ? 1.05 : 0.95) * (0.9 + rnd() * 0.2), h = r * (0.62 + rnd() * 0.12);
-      var pp = polar(0, 0, r * 0.38, a);
-      el('path', Object.assign({ d: cupPath(w, h, rnd), fill: fill, transform: 'translate(' + n(pp[0]) + ' ' + n(pp[1]) + ') rotate(' + n(a + 90) + ')' }, stroke), open);
-    });
+
     if (!b.bud) {
-      // inner cup and the ruffled heart
-      for (i = 0; i < 4; i++) {
-        var a2 = off + 45 + i * 90 + (rnd() - 0.5) * 30;
-        var p2 = polar(0, 0, r * 0.16, a2);
-        el('path', Object.assign({ d: cupPath(r * 0.62, r * 0.4, rnd), fill: fill, transform: 'translate(' + n(p2[0]) + ' ' + n(p2[1]) + ') rotate(' + n(a2 + 90) + ')' }, stroke), open);
+      // far petals peeking behind the crown
+      [-125 + rnd() * 20, -55 - rnd() * 20].forEach(function (a) {
+        var pp = polar(0, 0, r * 0.52, a);
+        el('path', { d: cupPath(r * 0.72, r * 0.42, rnd), fill: 'url(#petb' + P + ')', transform: 'translate(' + n(pp[0]) + ' ' + n(pp[1]) + ') rotate(' + n(a + 90) + ')' }, open);
+      });
+      // the crumpled crown: deep core, ruffled edges catching the light, creases below them
+      var ox = (rnd() - 0.5) * r * 0.16, oy = -r * (0.06 + rnd() * 0.1);
+      el('ellipse', { cx: n(ox), cy: n(oy), rx: n(r * 0.6), ry: n(r * 0.5), fill: 'url(#core' + P + ')' }, open);
+      var lit = '', crease = '', count = 9 + Math.floor(rnd() * 4);
+      for (var k = 0; k < count; k++) {
+        var rr = r * (0.1 + 0.42 * Math.sqrt(rnd()));
+        var a0 = rnd() * 360, span = 70 + rnd() * 90, t = r * (0.07 + rnd() * 0.06);
+        var cx = ox + (rnd() - 0.5) * r * 0.12, cy = oy + (rnd() - 0.5) * r * 0.1;
+        crease += ruffle(cx + r * 0.02, cy + r * 0.05, rr * 0.97, a0 + 4, a0 + span - 4, t * 0.9, rnd);
+        lit += ruffle(cx, cy, rr, a0, a0 + span, t, rnd);
       }
-      el('ellipse', { rx: n(r * 0.17), ry: n(r * 0.12), fill: 'url(#eye' + b.palette + ')' }, open);
-      el('path', Object.assign({ d: cupPath(r * 0.34, r * 0.2, rnd), fill: fill, transform: 'translate(0 ' + n(r * 0.08) + ')' }, stroke), open);
+      el('path', { d: crease, fill: pal.crease, opacity: 0.38 }, open);
+      el('path', { d: lit, fill: pal.rim, opacity: 0.55 }, open);
+      // broad guard petals cupping the ball from the sides and the front
+      var angs = [8 + rnd() * 14, 52 + rnd() * 14, 92 + (rnd() - 0.5) * 14, 128 - rnd() * 14, 172 - rnd() * 14];
+      angs.sort(function (p, q) { return Math.sin(p * Math.PI / 180) - Math.sin(q * Math.PI / 180); });
+      angs.forEach(function (a) {
+        var front = Math.sin(a * Math.PI / 180);
+        var pp = polar(0, 0, r * (0.5 + 0.08 * front), a);
+        el('path', {
+          d: cupPath(r * (0.82 + 0.25 * front) * (0.9 + rnd() * 0.2), r * (0.5 + 0.12 * front), rnd),
+          fill: 'url(#pet' + P + ')', stroke: pal.deep, 'stroke-opacity': 0.35, 'stroke-width': n(r * 0.025),
+          transform: 'translate(' + n(pp[0]) + ' ' + n(pp[1]) + ') rotate(' + n(a - 90 + (rnd() - 0.5) * 16) + ')'
+        }, open);
+      });
     } else {
-      el('path', { d: leafletPath(r * 0.85, r * 0.62), fill: 'url(#leafg)', transform: 'translate(0 ' + n(r * 0.8) + ') rotate(152)' }, inner);
-      el('path', { d: leafletPath(r * 0.85, r * 0.62), fill: 'url(#leafg)', transform: 'translate(0 ' + n(r * 0.8) + ') rotate(-152)' }, inner);
+      // tight bud: sepals hug the ball, a spiral seam of petals
+      el('path', { d: 'M' + n(-r * 0.62) + ' ' + n(r * 0.1) + ' Q' + n(-r * 0.2) + ' ' + n(-r * 0.75) + ' ' + n(r * 0.5) + ' ' + n(-r * 0.45), fill: 'none', stroke: pal.deep, 'stroke-width': n(r * 0.07), 'stroke-linecap': 'round', opacity: 0.5 }, open);
+      el('path', { d: leafletPath(r * 0.95, r * 0.7), fill: 'url(#leafg)', transform: 'translate(0 ' + n(r * 0.85) + ') rotate(150)' }, inner);
+      el('path', { d: leafletPath(r * 0.95, r * 0.7), fill: 'url(#leafg)', transform: 'translate(0 ' + n(r * 0.85) + ') rotate(-150)' }, inner);
     }
+    // globe lighting: lit upper left, shaded lower right
+    el('path', { d: outline, fill: 'url(#glight)' }, inner);
+
     var part = new Part(g, 'translate(' + n(b.x) + ' ' + n(b.y) + ')');
     var openPart = new Part(open, '');
     return { part: part, open: openPart, d: b.d };
@@ -187,7 +244,7 @@
       var ok = true;
       for (var i = 0; i < blooms.length; i++) {
         var o = blooms[i], dx = o.x - x, dy = o.y - y;
-        if (dx * dx + dy * dy < Math.pow((o.r + r) * 0.7, 2)) { ok = false; break; }
+        if (dx * dx + dy * dy < Math.pow((o.r + r) * 0.62, 2)) { ok = false; break; }
       }
       if (!ok) continue;
       var bud = rnd() < (cfg.buds || 0.1);
@@ -202,7 +259,7 @@
         o = blooms[i];
         near = Math.min(near, Math.hypot(o.x - x, o.y - y) - o.r);
       }
-      if (near > 8) blooms.push({ x: x, y: y, r: Math.min(13, near + 6), d: d / DOME.R, bud: true, palette: cfg.budPalette });
+      if (near > 10) blooms.push({ x: x, y: y, r: Math.min(13, near + 6), d: d / DOME.R, bud: true, palette: cfg.budPalette });
     }
     return blooms;
   }
@@ -233,7 +290,12 @@
       for (var i = 0; i < L[0]; i++) {
         var ang = -150 + (i + L[4]) / (L[0] - 1) * 300 + (rnd() - 0.5) * 8;
         var g = el('g', {}, collarLayer);
-        el('path', { d: sheetPath(L[1] * (0.94 + rnd() * 0.12), L[2], rnd), fill: 'url(#' + L[3] + ')', stroke: 'rgba(160,40,90,0.25)', 'stroke-width': 0.8 }, g);
+        var SL = L[1] * (0.94 + rnd() * 0.12), SW = L[2];
+        el('path', { d: sheetPath(SL, SW, rnd), fill: 'url(#' + L[3] + ')', stroke: 'rgba(160,40,90,0.25)', 'stroke-width': 0.8 }, g);
+        // soft folds: a lit ridge with a shadow beside it
+        var fx = (rnd() - 0.5) * SW * 0.22;
+        el('path', { d: 'M' + n(fx * 0.2) + ' ' + n(-SL * 0.3) + ' Q' + n(fx) + ' ' + n(-SL * 0.65) + ' ' + n(fx * 1.2) + ' ' + n(-SL * 0.82), fill: 'none', stroke: 'rgba(255,255,255,0.45)', 'stroke-width': 2.2, 'stroke-linecap': 'round' }, g);
+        el('path', { d: 'M' + n(fx * 0.2 + 3) + ' ' + n(-SL * 0.3) + ' Q' + n(fx + 4) + ' ' + n(-SL * 0.65) + ' ' + n(fx * 1.2 + 5) + ' ' + n(-SL * 0.82), fill: 'none', stroke: 'rgba(150,30,80,0.18)', 'stroke-width': 3, 'stroke-linecap': 'round' }, g);
         var p = new Part(g, 'translate(' + DOME.x + ' ' + DOME.y + ') rotate(' + n(ang) + ')');
         p.angle = ang;
         collar.push(p);

@@ -34,7 +34,7 @@
 
     bouquet: {
       seed: 21,
-      count: 66,        // cupped blooms in the dome (gaps are filled with small buds)
+      count: 82,        // cupped blooms in the dome (gaps are filled with small buds)
       size: 25,         // bloom radius in the middle of the dome
       buds: 0.08,
       leaves: 16,
@@ -45,7 +45,7 @@
         { light: '#FDE2EC', mid: '#F5B6CD', deep: '#D884A6', rim: '#FFF2F7', crease: '#A8577A' }, // soft pink
         { light: '#FFF7FA', mid: '#F9DDE7', deep: '#E6AEC3', rim: '#FFFFFF', crease: '#B9778F' }, // blush
         { light: '#FFFFFF', mid: '#F8F0F2', deep: '#DCC2CB', rim: '#FFFFFF', crease: '#A88893' }, // white
-        { light: '#FFF4F7', mid: '#F2C9D8', deep: '#C98AA4', rim: '#FFFFFF', crease: '#9A5C76' }  // bud
+        { light: '#FBD7E4', mid: '#EFA3BF', deep: '#C76A90', rim: '#FFE6EF', crease: '#8E3E62' }  // bud
       ],
       mix: [0.3, 0.26, 0.24, 0.1, 0.1, 0],
       budPalette: 5
@@ -69,6 +69,7 @@
   var leadWords, chars, nameChars, titleChars;
   var bouquetH = 0, wide = false;
   var FINALE_H = 56;
+  var TEXT_TOP = 58; // clear of the sound button
 
   /* ── Fallback: static text + static bouquet ─────── */
   function fallback(err) {
@@ -146,7 +147,11 @@
       wrap.style.left = '70%';
       finale.style.left = '40%';
     } else {
-      h = Math.min(H * 0.64, H - FINALE_H - 150, (W * 0.98) / aspect);
+      // the text gets its full size first; the bouquet takes the rest of the screen
+      var textS = Math.min(1, (W - 32) / introText.offsetWidth);
+      var textSpace = TEXT_TOP + introText.offsetHeight * textS + 14;
+      h = Math.min(H * 0.64, H - FINALE_H - textSpace, (W * 0.98) / aspect);
+      h = Math.max(h, H * 0.42);
       wrap.style.left = '';
       finale.style.left = '';
     }
@@ -170,9 +175,9 @@
       });
       return;
     }
-    var top = 64;
+    var top = TEXT_TOP;
     var wrapTop = H - FINALE_H - bouquetH;
-    var s = Math.max(0.4, Math.min(0.9, (wrapTop - 8 - top) / textH, (W - 40) / textW));
+    var s = Math.max(0.62, Math.min(1, (wrapTop - 8 - top) / textH, (W - 32) / textW));
     var free = Math.max(0, wrapTop - top - textH * s);
     gsap.set(intro, { x: 0, y: top + free * 0.3 - intro.offsetTop, scale: s });
   }
@@ -254,6 +259,7 @@
   }
 
   function showFlowers(tl, at) {
+    tl.add(layout, at); // fonts are surely loaded by now: measure the real text
     tl.to(congrats, { autoAlpha: 0, y: -20, duration: 0.7, ease: 'power1.in' }, at);
     tl.add(function () { world.wideShot(reduced ? 0.01 : 2.4); }, at);
     tl.to(dim, { opacity: 1, duration: 2.2, ease: 'power1.inOut' }, at + 0.3);
@@ -363,6 +369,7 @@
 
   /* ── Debug / tooling hook (OG image + static SVG export) ── */
   function jumpToEnd() {
+    layout();
     if (scene) scene.kill();
     scene = null;
     gsap.set(veil, { autoAlpha: 0 });
@@ -435,6 +442,7 @@
       fontsReady(CONFIG.timing.fontTimeout),
       CONFIG.music.autoplay ? music.start() : Promise.resolve(false)
     ]).then(function (r) {
+      layout();
       setSoundIcon(r[1]);
       if (r[1] || !CONFIG.music.autoplay) begin();
       else showStartGate();
