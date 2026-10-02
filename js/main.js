@@ -57,7 +57,7 @@
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var stage = $('#stage'), intro = $('#intro'), introText = $('.intro-text');
-  var leadEl = $('.lead'), dedicationEl = $('.dedication'), nameEl = $('.name');
+  var scrimEl = $('.scrim'), leadEl = $('.lead'), dedicationEl = $('.dedication'), nameEl = $('.name');
   var nameTextEl = $('.name-text'), nameGlowEl = $('.name-glow'), nameShineEl = $('.name-shine');
   var congrats = $('#congrats'), cTitle = $('.c-title');
   var finale = $('#finale'), replayBtn = $('#replay'), soundBtn = $('#sound'), startBtn = $('#start');
@@ -172,7 +172,7 @@
     }
     var top = 64;
     var wrapTop = H - FINALE_H - bouquetH;
-    var s = Math.max(0.4, Math.min(0.9, (wrapTop + bouquetH * 0.06 - top) / textH, (W - 40) / textW));
+    var s = Math.max(0.4, Math.min(0.9, (wrapTop - 8 - top) / textH, (W - 40) / textW));
     var free = Math.max(0, wrapTop - top - textH * s);
     gsap.set(intro, { x: 0, y: top + free * 0.3 - intro.offsetTop, scale: s });
   }
@@ -222,6 +222,7 @@
     var T = CONFIG.timing;
     var tl = gsap.timeline({ paused: true });
     tl.set([leadEl, dedicationEl, nameEl], { visibility: 'visible' }, 0);
+    tl.fromTo(scrimEl, { autoAlpha: 0 }, { autoAlpha: 1, duration: 1.2, ease: 'power1.inOut' }, 0);
     if (reduced) {
       tl.fromTo(leadWords.concat(chars, nameChars), { opacity: 0 }, { opacity: 1, duration: 1.4 }, 0.6)
         .fromTo(nameGlowEl, { opacity: 0 }, { opacity: 1, duration: 1 }, 1.4);
@@ -300,6 +301,7 @@
     wrap.classList.remove('swaying');
     nameShineEl.classList.remove('on');
     gsap.set([leadEl, dedicationEl, nameEl], { visibility: 'hidden' });
+    gsap.set(scrimEl, { autoAlpha: 0 });
     gsap.set([dim, light], { opacity: 0 });
     gsap.set(congrats, { autoAlpha: 0, y: 0 });
     gsap.set(finale, { autoAlpha: 0 });
