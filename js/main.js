@@ -1,7 +1,7 @@
-/* «Пионы для Дарии» — scene orchestration.
+/* «Пионы для Дарии» (Dariya) — scene orchestration.
  *
  * 1. Fuji at sunset, the camera pushes in
- * 2. A hiker climbs the switchback trail (altimeter counts to 3 776 m)
+ * 2. A hiker climbs the switchback trail
  * 3. Summit: flag, fireworks, confetti, «Вершина покорена!»
  * 4. The camera pulls back, the peony bouquet blooms with the final text
  *
@@ -12,14 +12,12 @@
   var CONFIG = {
     congrats: {
       title: 'Вершина покорена!',
-      altitude: '3 776 м · Фудзияма',
       sub: 'Поздравляю, Дария! 🎉'
     },
     lead: 'Каждая вершина тебе по силам.',
     dedication: 'А эти цветы\u00A0— для\u00A0тебя,',
     name: 'Дария',
     replay: '↻ ещё раз',
-    summitHeight: 3776,
 
     timing: {
       climb: 12,         // seconds the hiker needs from the foot to the summit
@@ -81,8 +79,7 @@
   var stage = $('#stage'), intro = $('#intro'), introText = $('.intro-text');
   var leadEl = $('.lead'), dedicationEl = $('.dedication'), nameEl = $('.name');
   var nameTextEl = $('.name-text'), nameGlowEl = $('.name-glow'), nameShineEl = $('.name-shine');
-  var congrats = $('#congrats'), cTitle = $('.c-title'), cAlt = $('.c-alt'), cSub = $('.c-sub');
-  var alti = $('#alti'), altiVal = $('.alti-val');
+  var congrats = $('#congrats'), cTitle = $('.c-title'), cSub = $('.c-sub');
   var finale = $('#finale'), replayBtn = $('#replay'), soundBtn = $('#sound');
   var wrap = $('#bouquet-wrap'), light = $('.bouquet-light'), veil = $('.veil'), dim = $('.dim');
 
@@ -232,14 +229,12 @@
     }, null, at + 0.35);
     tl.set(congrats, { autoAlpha: 1 }, at + 0.4);
     if (reduced) {
-      tl.fromTo([cTitle, cAlt, cSub], { opacity: 0 }, { opacity: 1, duration: 0.9, stagger: 0.4 }, at + 0.4);
+      tl.fromTo([cTitle, cSub], { opacity: 0 }, { opacity: 1, duration: 0.9, stagger: 0.4 }, at + 0.4);
     } else {
       tl.fromTo(titleChars,
         { opacity: 0, y: 40, scale: 0.2, rotation: function () { return (Math.random() - 0.5) * 50; } },
         { opacity: 1, y: 0, scale: 1, rotation: 0, duration: 0.7, ease: 'back.out(2.6)', stagger: 0.045 }, at + 0.4);
-      tl.fromTo(cAlt, { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.45, ease: 'power3.in' }, at + 1.5);
-      tl.fromTo(cAlt, { y: 0 }, { y: -3, duration: 0.08, yoyo: true, repeat: 1 }, at + 1.95);
-      tl.fromTo(cSub, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' }, at + 2.2);
+      tl.fromTo(cSub, { opacity: 0, y: 18, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'back.out(1.6)' }, at + 1.6);
     }
   }
 
@@ -280,7 +275,6 @@
 
   function showFlowers(tl, at) {
     tl.to(congrats, { autoAlpha: 0, y: -20, duration: 0.7, ease: 'power1.in' }, at);
-    tl.to(alti, { autoAlpha: 0, duration: 0.6 }, at);
     tl.add(function () { world.wideShot(reduced ? 0.01 : 2.4); }, at);
     tl.to(dim, { opacity: 1, duration: 2.2, ease: 'power1.inOut' }, at + 0.3);
     tl.to(light, { opacity: 1, duration: 2.6, ease: 'power1.inOut' }, at + 0.8);
@@ -313,8 +307,6 @@
     tl.add(function () { worldTl.restart(); }, 0);
     tl.to({}, { duration: worldTl.duration() }, 0);
     var summitAt = worldTl.labels.summit;
-    var climbAt = worldTl.labels.climb || 0;
-    if (!reduced) tl.to(alti, { autoAlpha: 1, duration: 0.6 }, climbAt);
     celebrate(tl, summitAt);
     showFlowers(tl, summitAt + CONFIG.timing.celebrate * (reduced ? 0.6 : 1));
     return tl;
@@ -333,7 +325,6 @@
     gsap.set(congrats, { autoAlpha: 0, y: 0 });
     gsap.set(finale, { autoAlpha: 0 });
     gsap.set(bouquet.svg, { visibility: 'hidden' });
-    altiVal.textContent = '0';
   }
 
   function play() {
@@ -395,7 +386,6 @@
     chars = splitChars(dedicationEl, CONFIG.dedication);
     nameChars = splitChars(nameTextEl, CONFIG.name);
     titleChars = splitChars(cTitle, CONFIG.congrats.title);
-    cAlt.textContent = CONFIG.congrats.altitude;
     cSub.textContent = CONFIG.congrats.sub;
 
     particles = NS.Particles($('#sky'), { reduced: reduced });
@@ -405,14 +395,8 @@
     bouquetTl = bouquet.timeline(reduced);
     finalTl = buildFinal();
 
-    var lastAlt = -1;
     gsap.ticker.add(function () {
       if (bouquetTl.isActive() || renderOnce) { bouquet.renderAll(); renderOnce = false; }
-      var a = Math.round(world.climbProgress() * CONFIG.summitHeight);
-      if (a !== lastAlt) {
-        lastAlt = a;
-        altiVal.textContent = a.toLocaleString('ru-RU');
-      }
     });
 
     layout();

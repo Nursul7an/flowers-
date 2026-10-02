@@ -81,31 +81,6 @@ body {
   z-index: 3;
 }
 
-/* ── Altimeter ────────────────────────────────── */
-#alti {
-  position: absolute;
-  top: calc(14px + var(--safe-t));
-  left: 14px;
-  z-index: 4;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 6px 14px 6px 10px;
-  border-radius: 999px;
-  font-family: var(--serif);
-  font-size: 1.15rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  color: #FFF4E6;
-  background: rgba(20, 16, 50, 0.38);
-  border: 1px solid rgba(255, 217, 160, 0.3);
-  opacity: 0;
-  visibility: hidden;
-}
-.alti-ico { font-size: 1rem; }
-.alti-val { min-width: 3.2em; text-align: right; }
-.alti-unit { opacity: 0.75; }
-
 /* ── Congratulations ──────────────────────────── */
 #congrats {
   position: absolute;
@@ -132,20 +107,6 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-.c-alt {
-  display: inline-block;
-  margin-top: 0.5rem;
-  padding: 3px 14px;
-  font-family: var(--serif);
-  font-size: clamp(0.95rem, min(4.4vw, 4.6vh), 1.4rem);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  color: #2B1B3A;
-  background: linear-gradient(135deg, #FFF1D2, #FFD59A);
-  border-radius: 999px;
-  box-shadow: 0 4px 22px rgba(255, 200, 130, 0.5);
 }
 
 .c-sub {
@@ -328,7 +289,6 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* No JS: static text + static bouquet */
 html:not(.js) #stage { flex-direction: column; justify-content: flex-start; padding-top: 6vh; }
 html:not(.js) #congrats,
-html:not(.js) #alti,
 html:not(.js) .name-shine,
 html:not(.js) .sound,
 html:not(.js) .veil,
@@ -353,7 +313,6 @@ html:not(.js) .name { font-size: clamp(2.8rem, 13vw, 4.6rem); }
 .fallback .char,
 .fallback .sw { opacity: 1 !important; transform: none !important; }
 .fallback #congrats,
-.fallback #alti,
 .fallback #world,
 .fallback .name-shine,
 .fallback .veil,

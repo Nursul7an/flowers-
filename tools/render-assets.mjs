@@ -26,10 +26,10 @@ const browser = await chromium.launch();
 {
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, ignoreHTTPSErrors: true });
   await page.goto(BASE + '?poster');
-  await page.evaluate(() => document.fonts.load('48px "Marck Script"', 'Дарии'));
-  await page.waitForFunction(() => document.fonts.check('48px "Marck Script"', 'Дарии'), null, { timeout: 15000 });
+  await page.evaluate(() => document.fonts.load('48px "Marck Script"', 'Дария'));
+  await page.waitForFunction(() => document.fonts.check('48px "Marck Script"', 'Дария'), null, { timeout: 15000 });
   await page.addStyleTag({ content: `
-    #sound, #intro, #finale, #alti, #congrats { display: none !important; }
+    #sound, #intro, #finale, #congrats { display: none !important; }
     .og-title { position: absolute; left: 70px; top: 0; bottom: 0; width: 560px; z-index: 4;
       display: flex; flex-direction: column; justify-content: center; text-align: center; }
     .og-title .small { font-family: var(--script); font-size: 54px; white-space: nowrap; color: var(--ink);
@@ -45,7 +45,7 @@ const browser = await chromium.launch();
     wrap.style.bottom = '-4px';
     const t = document.createElement('div');
     t.className = 'og-title';
-    t.innerHTML = '<div class="small">Для самой смелой —</div><div class="big">Дарии</div><div class="sub">одна вершина, один закат и цветы 🌸</div>';
+    t.innerHTML = '<div class="small">Это для тебя,</div><div class="big">Дария</div><div class="sub">одна вершина, один закат и цветы 🌸</div>';
     document.querySelector('#stage').appendChild(t);
     particles.snapshot(14);
   });
